@@ -4,67 +4,29 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AAR</title>
-<style>
-  :root { --paper: #fbf7ef; --ink: #2b2a27; --accent: #5b7c99; --muted: #7a7670; }
-  body { margin: 0; padding: 24px 16px; background: var(--paper); color: var(--ink); font: 16px/1.5 -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif; }
-  main { max-width: 720px; margin: 0 auto; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  .muted { color: var(--muted); font-size: 14px; }
-  form, .card { background: #fff; border: 1px solid #e5dfd2; border-radius: 8px; padding: 16px; margin-top: 16px; }
-  label { display: block; margin-top: 12px; font-size: 14px; }
-  input { width: 100%; box-sizing: border-box; padding: 8px; font: inherit; border: 1px solid #cfc7b8; border-radius: 6px; margin-top: 4px; }
-  button { margin-top: 16px; padding: 8px 16px; font: inherit; background: var(--accent); color: #fff; border: 0; border-radius: 6px; cursor: pointer; }
-  pre { white-space: pre-wrap; word-break: break-all; background: #f3efe6; padding: 8px; border-radius: 6px; font-size: 13px; }
-  .office { display: flex; gap: 12px; align-items: baseline; }
-  .office b { min-width: 8em; }
-  .badge { font-size: 12px; padding: 1px 6px; border-radius: 10px; background: #f0e4c8; margin-left: 6px; }
-  a { color: var(--accent); }
-</style>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%235b7c99%27/%3E%3Ccircle cx=%2716%27 cy=%2711%27 r=%275%27 fill=%27%23fffdf8%27/%3E%3Cpath d=%27M7 27c0-6 4-9 9-9s9 3 9 9z%27 fill=%27%23fffdf8%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<main>
+<header class="topbar">
   <h1 id="brand">AAR</h1>
-  <div class="muted" id="sub">Loading…</div>
-  <div id="content"></div>
-  <p class="muted">Phase 1: the reader and the JSON API. The lobby comes in phase 3. API: <a href="/api/staff">/api/staff</a> · <a href="/api/offices">/api/offices</a> · <a href="/api/cos">/api/cos</a></p>
+  <span class="staffdir" id="staffdir"></span>
+  <div class="stats" id="stats"><span>connecting…</span></div>
+</header>
+<main>
+  <section class="firstrun" id="firstrun" style="display:none"></section>
+  <section class="lobby" id="lobby" style="display:none">
+    <div class="warnings" id="warnings" style="display:none"></div>
+    <div class="cards" id="cards"></div>
+    <section class="frontdesk" id="frontdesk">
+      <h2>Front desk</h2>
+      <div class="strip"></div>
+    </section>
+  </section>
 </main>
-<script>
-(async function () {
-  const content = document.getElementById('content');
-  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  let data;
-  try {
-    data = await (await fetch('/api/offices')).json();
-  } catch (err) {
-    document.getElementById('sub').textContent = 'The server did not answer: ' + err.message;
-    return;
-  }
-  document.getElementById('brand').textContent = data.staff.brand;
-  document.title = data.staff.brand;
-  document.getElementById('sub').textContent = data.staff.staffDir + ' · ' + data.staff.count + ' office' + (data.staff.count === 1 ? '' : 's') + ' · read-only · polled ' + new Date(data.polledAt).toLocaleTimeString();
-
-  if (data.staff.count === 0) {
-    content.innerHTML = '<form id="setup"><b>No staff yet.</b> Create one with a single Chief of Staff office.' +
-      '<label>Staff folder <input name="staffDir" value="' + esc(data.staff.staffDir) + '"></label>' +
-      '<label>Chief of Staff\'s name <input name="name" placeholder="Casey"></label>' +
-      '<button type="submit">Create staff</button><div id="result"></div></form>';
-    document.getElementById('setup').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const form = new FormData(e.target);
-      const res = await fetch('/api/setup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ staffDir: form.get('staffDir'), name: form.get('name') }) });
-      const body = await res.json();
-      const out = document.getElementById('result');
-      if (!res.ok) { out.innerHTML = '<p>' + esc(body.error) + '</p>'; return; }
-      out.innerHTML = '<p>Created <b>' + esc(body.office) + '</b> in ' + esc(body.staffDir) + '. To put it in git:</p><pre>' + esc(body.gitInitCommand) + '</pre><p><a href="/">Reload</a></p>';
-    });
-    return;
-  }
-
-  content.innerHTML = data.offices.map((o) =>
-    '<div class="card office"><b>' + esc(o.name) + '</b><span class="muted">' + esc(o.role) + '</span><span>' + esc(o.bubble.text) + '</span>' +
-    o.badges.map((b) => '<span class="badge">' + esc(b) + '</span>').join('') + '</div>'
-  ).join('') + (data.errors.length ? '<div class="card"><b>Reader errors</b><pre>' + esc(data.errors.join('\n')) + '</pre></div>' : '');
-})();
-</script>
+<script src="/vendor/marked.min.js"></script>
+<script src="/js/render.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/lobby.js"></script>
 </body>
 </html>

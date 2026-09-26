@@ -15,6 +15,7 @@ const platform = require('./lib/platform');
 const reader = require('./lib/reader');
 const state = require('./lib/state');
 const setup = require('./lib/setup');
+const launch = require('./lib/launch');
 const { createStore } = require('./lib/store');
 
 const PUBLIC = path.join(loadConfig.APP_ROOT, 'public');
@@ -154,6 +155,11 @@ function createHandler(cfg, store) {
         const id = decodeURIComponent(p.slice('/api/offices/'.length));
         const office = offices().offices.find((o) => o.id === id);
         return office ? json(res, 200, office) : json(res, 404, { error: 'no such office' });
+      }
+      if (p.startsWith('/api/launch/')) {
+        const id = decodeURIComponent(p.slice('/api/launch/'.length));
+        const office = offices().offices.find((o) => o.id === id);
+        return office ? json(res, 200, { office: id, ...launch.launchCommand(office) }) : json(res, 404, { error: 'no such office' });
       }
       if (p === '/api/cos') {
         const all = offices();
