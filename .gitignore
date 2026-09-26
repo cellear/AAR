@@ -1,0 +1,14 @@
+# Reference clones of other repos (see blueprint appendix for their GitHub addresses)
+INCOMING/
+
+# macOS folder metadata
+.DS_Store
+
+# Node
+node_modules/
+
+# Per-machine settings: staff folder path, port. The app writes defaults if absent.
+aar.config.json
+
+# Local Claude Code settings can hold secrets
+**/.claude/settings.local.json
