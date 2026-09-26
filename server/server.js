@@ -37,10 +37,17 @@ function resolveSafe(root, rel) {
   if (decoded.includes('\0')) return null;
   const full = path.resolve(root, './' + decoded.replace(/^\/+/, ''));
   if (full !== root && !full.startsWith(root + path.sep)) return null;
+  /* Compare real paths on both sides: the root itself may sit behind a
+     symlink (macOS's temp dir, an iCloud folder), and comparing a resolved
+     target against an unresolved root would refuse every file under it.
+     Return the path as addressed, so callers can still check its parent
+     against the root they were given. */
+  let realRoot;
+  try { realRoot = fs.realpathSync(root); } catch { realRoot = root; }
   let real;
   try { real = fs.realpathSync(full); } catch { return full; }
-  if (real !== root && !real.startsWith(root + path.sep)) return null;
-  return real;
+  if (real !== realRoot && !real.startsWith(realRoot + path.sep)) return null;
+  return full;
 }
 
 function send(res, status, headers, body) {
