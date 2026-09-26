@@ -15,6 +15,7 @@ const platform = require('./lib/platform');
 const reader = require('./lib/reader');
 const state = require('./lib/state');
 const setup = require('./lib/setup');
+const { createStore } = require('./lib/store');
 
 const PUBLIC = path.join(loadConfig.APP_ROOT, 'public');
 const CAST = path.join(loadConfig.APP_ROOT, 'assets', 'avatars');
@@ -84,10 +85,9 @@ function readBody(req) {
   });
 }
 
-/* Build the request handler around one config. `read` is the reader; tests
-   can pass their own. */
-function createHandler(cfg, { read = (now) => reader.readAll(cfg, { now }) } = {}) {
-  const offices = () => read(new Date());
+/* Build the request handler around one store. */
+function createHandler(cfg, store) {
+  const offices = () => store.current;
 
   /* /avatars/<office id>/avatar.png and office.png, from the office folder;
      /avatars/cast/<file> from the starter cast. Only those file names. */
@@ -116,6 +116,7 @@ function createHandler(cfg, { read = (now) => reader.readAll(cfg, { now }) } = {
     if (pathname === '/api/setup') {
       try {
         const result = setup.createStaff({ cfg, staffDir: body.staffDir, name: body.name });
+        store.rebuild({ full: true });
         return json(res, 201, result);
       } catch (err) {
         return json(res, err.status || 500, { error: err.message });
@@ -143,11 +144,11 @@ function createHandler(cfg, { read = (now) => reader.readAll(cfg, { now }) } = {
     try {
       if (p === '/api/staff') {
         const all = offices();
-        return json(res, 200, { staff: all.staff, polledAt: all.polledAt, errors: all.errors, config: { port: cfg.port, brand: cfg.brand, pollMs: cfg.pollMs, stuckMs: cfg.stuckMs, gitFetchMs: cfg.gitFetchMs, models: cfg.models } });
+        return json(res, 200, { staff: all.staff, polledAt: all.polledAt, errors: all.errors, stale: store.stale, config: { port: cfg.port, brand: cfg.brand, pollMs: cfg.pollMs, stuckMs: cfg.stuckMs, gitFetchMs: cfg.gitFetchMs, models: cfg.models } });
       }
       if (p === '/api/offices') {
         const all = offices();
-        return json(res, 200, { staff: all.staff, offices: all.offices, frontDesk: all.frontDesk, git: all.git, polledAt: all.polledAt, errors: all.errors });
+        return json(res, 200, { ...store.initFrame() });
       }
       if (p.startsWith('/api/offices/')) {
         const id = decodeURIComponent(p.slice('/api/offices/'.length));
@@ -158,6 +159,9 @@ function createHandler(cfg, { read = (now) => reader.readAll(cfg, { now }) } = {
         const all = offices();
         if (!all.cos) return json(res, 404, { error: 'no office has cos=yes', warnings: all.staff.warnings });
         return json(res, 200, { cos: all.cos.id, ...state.buildRollup({ snapshots: all.offices, cos: all.cos }), polledAt: all.polledAt });
+      }
+      if (p === '/api/events') {
+        return store.hub.add(req, res, { type: 'init', ...store.initFrame() });
       }
       if (p.startsWith('/avatars/')) {
         return image(res, p.slice('/avatars/'.length).split('/').filter(Boolean), head);
@@ -178,8 +182,14 @@ function createHandler(cfg, { read = (now) => reader.readAll(cfg, { now }) } = {
   };
 }
 
-function createServer(cfg, options) {
-  return http.createServer(createHandler(cfg, options));
+/* `live: false` skips the CLI, git and the watcher; tests use it. */
+function createServer(cfg, { live = true } = {}) {
+  const store = createStore(cfg, { live });
+  store.start();
+  const server = http.createServer(createHandler(cfg, store));
+  server.store = store;
+  server.on('close', () => store.stop());
+  return server;
 }
 
 function start() {

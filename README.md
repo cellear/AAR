@@ -42,12 +42,13 @@ In each office AAR reads only these files and lists the rest by name:
 | `avatar.png`, `office.png` | The standee and the background scene, optional. |
 | `mornings/` | Chief of Staff only: the daily printed sheet. |
 
-## API (phase 1)
+## API
 
     GET  /api/staff              roster summary and config
     GET  /api/offices            every office snapshot
     GET  /api/offices/<folder>   one snapshot
     GET  /api/cos                the Chief of Staff's cross-office roll-up
+    GET  /api/events             SSE: an init frame, then office / frontDesk / git / staff / stale frames
     GET  /avatars/<folder>/avatar.png, /avatars/<folder>/office.png, /avatars/cast/<file>
     POST /api/setup              first run only: create the staff folder
 
@@ -55,6 +56,7 @@ Every other method is answered 405 before any path is resolved.
 
 ## Status
 
-Phase 1 of the plan: the reader and the JSON API. Live sessions, transcripts,
-git status, the event stream, the lobby, the office view, the Chief of Staff
-view and the hire wizard are the phases that follow.
+Phases 1 and 2 of the plan: the reader, the JSON API, and the live sources
+(`claude agents --json` polling, session attribution, transcript tailing, git
+status, the file watcher and the event stream). The lobby, the office view,
+the Chief of Staff view and the hire wizard are the phases that follow.

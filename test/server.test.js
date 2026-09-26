@@ -10,7 +10,7 @@ const { createServer } = require('../server/server');
 function startServer() {
   const staffDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aar-srv-'));
   const cfg = { ...config.DEFAULTS, appRoot: config.APP_ROOT, staffDir, configPath: path.join(staffDir, 'cfg.json') };
-  const server = createServer(cfg);
+  const server = createServer(cfg, { live: false });
   return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve({ server, cfg, base: `http://127.0.0.1:${server.address().port}` })));
 }
 
