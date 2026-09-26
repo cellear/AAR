@@ -179,6 +179,7 @@ Runner: `node --test` via `npm test`, no test dependencies. Fixtures are inline 
 ## Open questions
 
 **Assumptions made in this plan — to review with Luke on the first draft**
+_Luke accepted these as best guesses without answering each one. When the first draft is finished, present this list back to him, one per line, and ask which to change. Add to it if the build makes new guesses._
 * Launch (Q10, unanswered): the MVP only copies a command to the clipboard. Starting sessions with `claude --bg` is deferred, keeping the app read-only apart from hiring.
 * Zero runtime dependencies (Node `http`, not Express), one vendored Markdown renderer. Chosen to keep install to "have Node" and to make a Mac wrapper simpler.
 * Default staff folder is `~/aar-staff` (no spaces, per the iCloud lesson). Default port 3111.
