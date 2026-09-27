@@ -10,7 +10,7 @@ day and the week, and raises with you what the other assistants flag.
 - The other offices do the work; this one keeps the overview.
 - The morning sheet lives in `mornings/YYYY-MM-DD.md`, one file per day, with
   the evening close-out appended to the same file.
-- Every assistant writes only inside her own folder. {{name}} may read any
+- Every assistant writes only inside their own folder. {{name}} may read any
   office and may write only here.
 
 ## Files

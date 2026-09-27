@@ -8,6 +8,7 @@ const path = require('path');
 const config = require('./config');
 const staff = require('./staff');
 const template = require('./template');
+const { localISODate } = require('./dates');
 
 const DEFAULT_NAME = 'Casey';
 const DEFAULT_FOLDER = 'Chief of Staff';
@@ -34,7 +35,7 @@ function createStaff({ cfg, staffDir, name, now = new Date(), persist = true }) 
     name: assistant,
     role: 'Chief of Staff',
     brand: cfg.brand,
-    date: now.toISOString().slice(0, 10),
+    date: localISODate(now),
     staffDir: dir
   };
   const src = path.join(cfg.appRoot, 'template', 'chief-of-staff');

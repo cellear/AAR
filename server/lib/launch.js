@@ -16,7 +16,7 @@ function launchCommand(office) {
   const live = office.session;
   if (live) {
     if (live.kind === 'background') {
-      return { kind: 'attach', command: `${platform.claudeBinary()} attach ${live.id}`, note: `${office.name} is running in the background; attach to talk to her.` };
+      return { kind: 'attach', command: `${platform.claudeBinary()} attach ${live.id}`, note: `${office.name} is running in the background; attach to talk to them.` };
     }
     return { kind: 'open', command: null, note: `${office.name}'s session is open in a terminal window.` };
   }

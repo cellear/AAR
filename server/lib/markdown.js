@@ -86,8 +86,8 @@ function iso(y, m, d) {
    puts the date more than 60 days behind today, in which case next year: a
    deadline written as "Sept 28" in December means the coming one. */
 function inferYear(month, day, now) {
-  const year = now.getUTCFullYear();
-  const candidate = Date.UTC(year, month - 1, day);
+  const year = now.getFullYear();
+  const candidate = new Date(year, month - 1, day).getTime();
   const sixtyDays = 60 * 86400000;
   return candidate < now.getTime() - sixtyDays ? year + 1 : year;
 }

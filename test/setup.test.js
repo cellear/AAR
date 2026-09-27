@@ -29,7 +29,7 @@ test('createStaff renders the Chief of Staff office with placeholders filled', (
   assert.equal(conf.shortName, 'Casey');
   assert.equal(conf.cos, true);
   assert.equal(conf.role, 'Chief of Staff');
-  assert.match(fs.readFileSync(path.join(dir, 'log.md'), 'utf8'), /## 2026-09-26/);
+  assert.match(fs.readFileSync(path.join(dir, 'log.md'), 'utf8'), /## \d{4}-\d{2}-\d{2}/);
   assert.match(fs.readFileSync(path.join(dir, 'CLAUDE.md'), 'utf8'), /<!-- aar:start -->/);
   assert.equal(staff.discoverOffices(c.staffDir).length, 1);
   assert.match(r.gitInitCommand, /^cd ".*" && git init/);

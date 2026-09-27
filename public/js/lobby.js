@@ -32,7 +32,7 @@
   /* ---------- cards ---------- */
   function bubbleHTML(o) {
     const need = o.status && o.status.need ? `<span class="need"><b>Need from you:</b> ${esc(o.status.need)}</span>` : '';
-    const src = { status: '', away: 'from her last session', transcript: 'her last message', none: '' }[o.bubble.source] || '';
+    const src = { status: '', away: 'from their last session', transcript: 'their last message', none: '' }[o.bubble.source] || '';
     return `<div class="bubble ${o.bubble.source === 'none' ? 'none' : ''}">${esc(o.bubble.text)}${need}${src ? `<span class="src">${src}</span>` : ''}</div>`;
   }
 
@@ -55,7 +55,7 @@
       <div class="foot">
         <span class="heard" data-heard="${esc(o.lastHeard || '')}">last heard ${esc(relTime(o.lastHeard))}</span>
         ${badges(o.badges)}
-        <button class="btn launch" data-id="${esc(o.id)}" title="Copy the terminal command to the clipboard">Open her session</button>
+        <button class="btn launch" data-id="${esc(o.id)}" title="Copy the terminal command to the clipboard">Open session</button>
       </div>`;
   }
 

@@ -27,6 +27,28 @@ file), `AAR_STAFF_DIR`, `AAR_PORT`, `AAR_NO_OPEN=1` (do not open the browser).
 
     npm test
 
+## Where the staff folder goes
+
+AAR is two things that live apart:
+
+- **The app**: this folder, the AAR checkout. You run `npm start` here and
+  never put your own files in it.
+- **The staff folder**: one folder you choose, holding one subfolder per
+  office. This is your data, and it should be its own git repository so that
+  cloud sessions can see it and so the Unpushed and Behind badges mean
+  something. Put it anywhere outside the app checkout, with no spaces in the
+  path, for example `~/aar-staff` or `~/Sites/aar-staff`.
+
+`aar.config.json` in the app folder records which staff folder the app is
+pointed at. The first-run screen lets you type the path, and you can edit the
+file by hand later. A staff folder created inside the app checkout works, but
+its git badges would then describe the app's repository rather than the
+staff's, so `STAFF/` and `staff/` inside the checkout are gitignored as a
+safety net.
+
+Inside the staff folder every office is a subfolder with an `aa.conf`. The
+hire wizard creates offices; you can also copy one and edit `aa.conf`.
+
 ## What AAR reads
 
 A folder directly under the staff folder is an office if it contains `aa.conf`.

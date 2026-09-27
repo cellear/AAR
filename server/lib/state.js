@@ -7,6 +7,7 @@
 
 const md = require('./markdown');
 const { parseStatus } = require('./status');
+const { localISODate, addDays } = require('./dates');
 
 const NOTHING_YET = 'Nothing yet.';
 const MAX_BUBBLE = 160;
@@ -142,8 +143,8 @@ function buildRollup({ snapshots, cos = null, now = new Date(), horizonDays = 14
     }
     staff.push({ office: s.id, name: s.name, role: s.role, model: s.model, liveness: s.liveness, lastHeard: s.lastHeard, badges: s.badges, bubble: s.bubble });
   }
-  const today = now.toISOString().slice(0, 10);
-  const horizon = new Date(now.getTime() + horizonDays * 86400000).toISOString().slice(0, 10);
+  const today = localISODate(now);
+  const horizon = localISODate(addDays(now, horizonDays));
   const bucket = (d) => (!d.date ? 3 : d.date < today ? 0 : d.date <= horizon ? 1 : 2);
   deadlines.sort((a, b) => bucket(a) - bucket(b) || (a.date && b.date ? (a.date < b.date ? -1 : a.date > b.date ? 1 : 0) : 0));
   const morningSheet = cos && cos.mornings && cos.mornings.length

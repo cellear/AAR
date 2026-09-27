@@ -53,10 +53,10 @@
     return (list || []).map((b) => `<span class="badge ${esc(b)}" title="${esc(BADGE_TITLE[b] || '')}">${esc(BADGE_LABEL[b] || b)}</span>`).join('');
   }
   const BADGE_TITLE = {
-    needsYou: 'Her status.md has a "Need from you" line',
+    needsYou: 'Their status.md has a "Need from you" line',
     unpushed: 'The staff repo has commits not yet pushed to origin',
     behind: 'Origin has commits this Mac has not pulled',
-    stuck: 'Her last message is an API error, or she has been busy unusually long'
+    stuck: 'Their last message is an API error, or they have been busy unusually long'
   };
 
   /* A neutral silhouette for an office with no picture. Tinted with the

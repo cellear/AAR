@@ -12,3 +12,8 @@ aar.config.json
 
 # Local Claude Code settings can hold secrets
 **/.claude/settings.local.json
+
+# A staff folder created inside the app checkout by mistake. The staff belongs
+# in its own folder (see README: "Where the staff folder goes").
+/STAFF/
+/staff/
