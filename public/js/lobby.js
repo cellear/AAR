@@ -230,7 +230,7 @@
       <p>This version is a window onto the staff. It shows who is awake, what each assistant is doing, and who needs you. It reads their files and Claude Code's session list, and it never edits an assistant's files. Talking to an assistant happens in a terminal; a later version will let you talk from here.</p>
       <ol class="steps">
         <li><b>The staff folder.</b> One folder you choose, outside this app, with one subfolder per office. Make it a git repository so cloud sessions can see it. A path with no spaces is safest, such as <code>~/aar-staff</code>.</li>
-        <li><b>An office</b> is one assistant's folder: a handful of Markdown files that hold what they know, what they have done, and how they behave. The office page explains each file.</li>
+        <li><b>An office</b> is one assistant's folder: a handful of Markdown files that hold what they know, what they have done, and how they behave. The formats are in <a href="/docs/conventions.md" target="_blank" rel="noopener">docs/conventions.md</a>.</li>
         <li><b>The Chief of Staff</b> is the first office, created for you on the next screen. The others come from the <b>Hire</b> button.</li>
         <li><b>Talking to an assistant</b> happens in a terminal. From their office, copy the command ${esc(brand)} gives you, paste it into a terminal, and Claude Code starts there as that assistant. The floor updates within seconds.</li>
       </ol>

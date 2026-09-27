@@ -234,6 +234,12 @@ function createHandler(cfg, store) {
       if (p.startsWith('/office/')) rel = 'office.html';
       else if (p === '/cos') rel = 'cos.html';
       else if (p === '/hire') rel = 'hire.html';
+      /* The docs folder is served read-only too, so the pages can link to it. */
+      if (p.startsWith('/docs/')) {
+        const doc = resolveSafe(path.join(loadConfig.APP_ROOT, 'docs'), p.slice('/docs/'.length));
+        if (!doc) return json(res, 404, { error: 'not found' });
+        return sendFile(res, doc, { head });
+      }
       const file = resolveSafe(PUBLIC, rel);
       if (!file) return json(res, 404, { error: 'not found' });
       return sendFile(res, file, { head });

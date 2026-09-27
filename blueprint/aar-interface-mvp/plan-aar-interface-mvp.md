@@ -1,5 +1,27 @@
 # Plan: AAR interface MVP
 
+> **Read this first (2026-09-27).** This plan is the starting point, kept as
+> written. The build followed it through phase 6 and then diverged in ways
+> that are now the design. What actually holds is in `../DECISIONS.md`; the
+> file formats are in `../../docs/conventions.md`. The main departures:
+>
+> * The lobby is a **floor**, not a card grid: everyone stands on one
+>   background with a name plate (name, role, one-line summary, last heard);
+>   click one and the others recede while that assistant's panels appear.
+>   The card grid survives behind a toggle.
+> * The app has **three** write paths, not two: first-run setup, the hire
+>   wizard, and its own settings file (changing the staff folder from the
+>   page). It never modifies or deletes a file it did not create.
+> * The office page has a **Conversation** card showing the whole session
+>   transcript, not just the last message.
+> * First run opens with a summary screen, asks for the folder rather than
+>   assuming one, and creates the Chief of Staff with an accent and standee.
+>   `npm run reset` forgets the settings.
+> * Dates are local, pronouns are they/them, the default name Casey is gone,
+>   and AAR stands for Administrative Assistant Robots.
+> * A Playwright browser suite (`npm run test:browser`) joins the Node tests.
+> * Phase 7 (`start.sh`, tuning) is still open.
+
 _Written 2026-09-26 by claude-fable-5-1 (blueprint session "building an interface to AAR")._
 _Reference material: `INCOMING/` holds Luke's staff repo and eight related repos, all on GitHub. See the appendix "Reference repositories" at the end for addresses, summaries, and when each is worth consulting. The lineage is ams-trio → 3mt-avatars (avatar panels, SSE, file watching), ams-monitor (read-only window, no-write server), muse-monitor (read the tool's own logs), AMS/INTERFACE (floor plan, standees, Done/Next/Blockers bubble)._
 

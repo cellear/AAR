@@ -5,8 +5,12 @@ Each assistant is a folder of Markdown plus a Claude Code session started in
 it; AAR is the window onto them. It reads files, never runs a session, and
 writes nothing except a new office folder when you hire.
 
-The design is in `blueprint/aar-interface-mvp/plan-aar-interface-mvp.md`.
-The system it generalises is described in `aa-system-memo.md`.
+The file formats are in [`docs/conventions.md`](docs/conventions.md). The
+decisions behind the design, and the assumptions still standing, are in
+[`blueprint/DECISIONS.md`](blueprint/DECISIONS.md). The original plan is in
+`blueprint/aar-interface-mvp/`, with a note at the top on where the build
+departed from it. The system it generalises is described in
+`aa-system-memo.md`.
 
 ## Quick start
 
@@ -75,10 +79,25 @@ Inside the staff folder every office is a subfolder with an `aa.conf`. The
 `avatar-prompts.md` with prompts for a standee and an office scene. You can
 also copy an office and edit `aa.conf` by hand.
 
+## Settings
+
+`aar.config.json` in the app folder:
+
+| Key | Default | Meaning |
+|---|---|---|
+| `staffDir` | `~/aar-staff` | The staff folder. |
+| `port` | `3111` | The local port. |
+| `brand` | `AAR` | The name shown everywhere. |
+| `pollMs` | `5000` | How often live sessions are polled. |
+| `stuckMs` | `900000` | Busy longer than this is flagged Stuck. |
+| `gitFetchMs` | `300000` | How often to `git fetch` the staff repo; `0` disables. |
+| `models` | `opus, sonnet, haiku` | Choices in the hire wizard. |
+
 ## What AAR reads
 
 A folder directly under the staff folder is an office if it contains `aa.conf`.
-In each office AAR reads only these files and lists the rest by name:
+In each office AAR reads only these files and lists the rest by name. The
+full formats are in `docs/conventions.md`.
 
 | File | What it is |
 |---|---|
