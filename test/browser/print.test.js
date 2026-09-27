@@ -1,0 +1,32 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const { app } = require('./helpers');
+
+test('cross-office tabs and a one-page morning sheet', async (t) => {
+  const a = await app(t);
+  if (!a) return;
+  const { page } = a;
+  await a.goto('/cos');
+  await page.waitForSelector('.needs-list li');
+  assert.equal(await page.locator('.needs-list li').count(), 2);
+  await a.goto('/cos#deadlines');
+  await page.waitForSelector('.dl-groups');
+  assert.match(await page.textContent('.dl-groups'), /Next 14 days/);
+  await a.goto('/cos#staff');
+  await page.waitForSelector('.staff-table tbody tr');
+  assert.equal(await page.locator('.staff-table tbody tr').count(), 5);
+  await a.goto('/cos#sheet');
+  await page.waitForSelector('.sheet');
+  assert.match(await page.textContent('.sheet'), /Only you can do/);
+  await page.emulateMedia({ media: 'print' });
+  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'aar-pdf-')), 'sheet.pdf');
+  await page.pdf({ path: out, format: 'Letter' });
+  const pdf = fs.readFileSync(out);
+  const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
+  assert.ok(pages >= 1 && pages <= 2, `morning sheet is ${pages} pages`);
+  fs.rmSync(path.dirname(out), { recursive: true, force: true });
+});

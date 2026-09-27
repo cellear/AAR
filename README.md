@@ -38,6 +38,17 @@ file), `AAR_STAFF_DIR`, `AAR_PORT`, `AAR_NO_OPEN=1` (do not open the browser).
 
     npm test
 
+That runs the Node tests: parsers, state derivation and the server, with
+inline fixtures and no browser. The browser suite drives the real pages in
+the Chrome on your Mac (first run, the floor, the office page, the live
+conversation, the hire wizard, the printed sheet), each test against a fresh
+temp staff with a fake assistant writing transcript lines. It needs one
+`npm install` (Playwright, a dev dependency only) and then:
+
+    npm run test:browser
+
+Set `AAR_BROWSER` to a browser executable if Chrome is not found.
+
 ## Where the staff folder goes
 
 AAR is two things that live apart:

@@ -7,12 +7,16 @@
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "test": "node --test \"test/**/*.test.js\"",
+    "test": "node --test \"test/*.test.js\"",
     "demo": "node server/demo.js",
-    "reset": "node server/reset.js"
+    "reset": "node server/reset.js",
+    "test:browser": "node --test \"test/browser/*.test.js\""
   },
   "engines": {
     "node": ">=22"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "playwright-core": "^1.50.0"
+  }
 }

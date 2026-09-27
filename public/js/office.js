@@ -256,11 +256,12 @@
        briefing cards refresh in place so the conversation keeps its scroll. */
     if (first) { renderMain(); startConvoPolling(); }
     else {
+      /* Leave the conversation card in place: detaching a scroll container
+         resets its scroll position. Replace only its siblings. */
       const sections = office.briefing ? office.briefing.sections : [];
       const keep = $('#convo');
-      $('#main').innerHTML = '';
-      $('#main').appendChild(keep);
-      $('#main').insertAdjacentHTML('beforeend', (office.briefing === null ? '<article class="pcard empty"><h2>Briefing</h2><div class="md"><p>No briefing.md yet.</p></div></article>' : sections.map(sectionCard).join('')) + logCard() + readmeCard());
+      for (const el of [...$('#main').children]) if (el !== keep) el.remove();
+      keep.insertAdjacentHTML('afterend', (office.briefing === null ? '<article class="pcard empty"><h2>Briefing</h2><div class="md"><p>No briefing.md yet.</p></div></article>' : sections.map(sectionCard).join('')) + logCard() + readmeCard());
     }
   }
 

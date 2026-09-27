@@ -257,7 +257,8 @@ function start() {
   const cfg = loadConfig.load();
   const server = createServer(cfg);
   server.listen(cfg.port, '127.0.0.1', () => {
-    const url = `http://localhost:${cfg.port}/`;
+    const port = server.address().port;   /* AAR_PORT=0 picks a free one */
+    const url = `http://localhost:${port}/`;
     const pad = ' '.repeat(cfg.brand.length);
     console.log(`${cfg.brand}  ${url}`);
     if (!cfg.settingsExist && !process.env.AAR_STAFF_DIR) {

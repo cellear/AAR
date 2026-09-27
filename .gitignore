@@ -17,3 +17,4 @@ aar.config.json
 # in its own folder (see README: "Where the staff folder goes").
 /STAFF/
 /staff/
+package-lock.json

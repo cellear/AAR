@@ -56,7 +56,10 @@ function normalise(raw) {
 function resolve(cfg) {
   const out = { ...cfg };
   if (process.env.AAR_STAFF_DIR) out.staffDir = process.env.AAR_STAFF_DIR;
-  if (process.env.AAR_PORT) out.port = Number(process.env.AAR_PORT) || out.port;
+  if (process.env.AAR_PORT !== undefined && process.env.AAR_PORT !== '') {
+    const n = Number(process.env.AAR_PORT);   /* 0 asks for a free port */
+    if (Number.isInteger(n) && n >= 0) out.port = n;
+  }
   out.staffDir = path.resolve(expandHome(out.staffDir));
   out.appRoot = APP_ROOT;
   out.configPath = configPath();
