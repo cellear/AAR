@@ -12,17 +12,21 @@
   <h1 id="brand">AAR</h1>
   <span class="staffdir" id="staffdir"></span>
   <div class="stats" id="stats"><span>connecting…</span></div>
+  <span class="viewtoggle" id="viewtoggle" style="display:none"><a href="#" data-view="floor">Floor</a><a href="#cards" data-view="cards">Cards</a></span>
   <a class="hirebtn" href="/hire" id="hirebtn" style="display:none">Hire</a>
 </header>
 <main>
   <section class="firstrun" id="firstrun" style="display:none"></section>
-  <section class="lobby" id="lobby" style="display:none">
+  <section class="floor" id="floor" style="display:none">
+    <a class="close" id="close" href="#" style="display:none">✕ back to everyone</a>
     <div class="warnings" id="warnings" style="display:none"></div>
+    <div class="panels" id="panels" style="display:none"></div>
+    <div class="row" id="row"></div>
+    <section class="frontdesk" id="frontdesk"><h2>Front desk</h2><div class="strip"></div></section>
+    <div class="ground"></div>
+  </section>
+  <section class="lobby" id="lobby" style="display:none">
     <div class="cards" id="cards"></div>
-    <section class="frontdesk" id="frontdesk">
-      <h2>Front desk</h2>
-      <div class="strip"></div>
-    </section>
   </section>
 </main>
 <script src="/vendor/marked.min.js"></script>

@@ -90,6 +90,13 @@ are the app's only writes, and neither ever overwrites an existing folder.
 
 ## Status
 
+The lobby is a floor: every assistant stands on it with a name plate showing
+their `Now` line (or their `Need from you` line, in red) and how long since
+they were last heard. Figures fade after a day of silence and grey after a
+week. Click one and the others recede while that assistant's status note,
+deadlines, open items and recent log appear; the Chief of Staff also gets the
+cross-office needs-you list. The older card grid is behind the Cards toggle.
+
 Phases 1 to 6 of the plan: the reader, the JSON API, the live sources
 (`claude agents --json` polling, session attribution, transcript tailing, git
 status, the file watcher and the event stream), the lobby, the office view,
