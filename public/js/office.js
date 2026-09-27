@@ -81,10 +81,80 @@
     return `<article class="pcard wide"><details class="about"><summary>About this office</summary><div class="md">${md(office.readme)}</div></details></article>`;
   }
 
+  /* ---------- the conversation ---------- */
+  const convo = { session: null, messages: [], from: 0, total: 0, sessions: [], live: false, timer: null, stuck: true };
+
+  function msgHTML(m) {
+    const when = m.at ? new Date(m.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+    const tools = (m.tools || []).map((t) => `<details class="tool ${t.isError ? 'err' : ''}"><summary><b>${esc(t.name)}</b> ${esc(t.input)}</summary>${t.result ? `<pre>${esc(t.result)}</pre>` : '<pre>(no result recorded)</pre>'}</details>`).join('');
+    const body = m.role === 'user' ? `<div class="md">${markdown(m.text)}</div>` : `<div class="md">${m.text ? markdown(m.text) : ''}</div>${tools}`;
+    return `<div class="msg ${esc(m.role)} ${m.apiError ? 'error' : ''}" data-i="${m.i}"><div class="who">${m.role === 'user' ? 'you' : esc(office.name)}<span class="t">${esc(when)}</span></div><div class="body">${body}</div></div>`;
+  }
+
+  function renderConvo() {
+    const box = $('#convo');
+    if (!box) return;
+    const picker = convo.sessions.length > 1
+      ? `<select id="sesspick">${convo.sessions.map((s) => `<option value="${esc(s.id)}" ${s.id === convo.session ? 'selected' : ''}>${s.live ? '● live · ' : ''}${esc(new Date(s.mtime).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }))} · ${esc(s.id.slice(0, 8))}</option>`).join('')}</select>`
+      : '';
+    const bar = `<div class="tools-bar">${convo.session ? `<span>${convo.live ? '<span class="dot busy"></span> live session' : 'transcript'} · ${convo.total} message${convo.total === 1 ? '' : 's'}</span>` : ''}${picker}<span>${convo.session ? 'Everything ' + esc(office.name) + ' said in the terminal, as recorded by Claude Code. Tool calls are folded; click one to see what it did.' : ''}</span></div>`;
+    if (!convo.session) {
+      box.innerHTML = `<h2>Conversation</h2>${bar}<div class="none">No transcript on this Mac for this office yet. Transcripts appear once a session has run in the office folder in a terminal here; sessions from the desktop app or the cloud leave none.</div>`;
+      return;
+    }
+    const earlier = convo.from > 0 ? `<button class="btn earlier" id="earlier">Show ${Math.min(60, convo.from)} earlier</button>` : '';
+    box.innerHTML = `<h2>Conversation</h2>${bar}<div class="msgs" id="msgs">${earlier}${convo.messages.map(msgHTML).join('') || '<div class="none">Nothing said yet.</div>'}</div>`;
+    const msgs = $('#msgs');
+    if (convo.stuck) msgs.scrollTop = msgs.scrollHeight;
+    msgs.addEventListener('scroll', () => { convo.stuck = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 40; });
+    const pick = $('#sesspick');
+    if (pick) pick.addEventListener('change', () => { convo.session = pick.value; convo.messages = []; convo.stuck = true; loadConvo({ reset: true }); });
+    const more = $('#earlier');
+    if (more) more.addEventListener('click', () => loadConvo({ before: convo.from }));
+  }
+
+  async function loadConvo({ before = null, reset = false } = {}) {
+    try {
+      const q = new URLSearchParams();
+      if (convo.session && !reset) q.set('session', convo.session);
+      if (reset && convo.session) q.set('session', convo.session);
+      if (before !== null) q.set('before', String(before));
+      const r = await getJSON(`/api/transcript/${encodeURIComponent(id)}?${q}`);
+      convo.sessions = r.sessions; convo.total = r.total; convo.live = !!r.live;
+      if (before !== null) {
+        /* Prepend the earlier page and keep the scroll where it was. */
+        const msgs = $('#msgs'); const h = msgs ? msgs.scrollHeight : 0;
+        convo.messages = r.messages.concat(convo.messages); convo.from = r.from; convo.stuck = false;
+        renderConvo();
+        const m2 = $('#msgs'); if (m2) m2.scrollTop = m2.scrollHeight - h;
+        return;
+      }
+      if (convo.session !== r.session) { convo.messages = []; convo.stuck = true; }
+      convo.session = r.session;
+      /* A poll returns the tail; merge by message index so earlier pages stay. */
+      if (convo.messages.length && r.messages.length && r.from <= convo.messages[0].i) convo.messages = r.messages;
+      else if (convo.messages.length) { const known = new Set(convo.messages.map((m) => m.i)); const fresh = r.messages.filter((m) => !known.has(m.i)); const last = convo.messages[convo.messages.length - 1]; if (last) { const upd = r.messages.find((m) => m.i === last.i); if (upd) convo.messages[convo.messages.length - 1] = upd; } convo.messages = convo.messages.concat(fresh); }
+      else { convo.messages = r.messages; convo.from = r.from; }
+      if (!convo.messages.length) convo.from = r.from;
+      renderConvo();
+    } catch (err) {
+      const box = $('#convo'); if (box) box.innerHTML = `<h2>Conversation</h2><div class="none">${esc(err.message)}</div>`;
+    }
+  }
+
+  function startConvoPolling() {
+    if (convo.timer) clearInterval(convo.timer);
+    convo.timer = setInterval(() => { if (document.visibilityState === 'visible') loadConvo(); }, 4000);
+  }
+
   function renderMain() {
     const sections = office.briefing ? office.briefing.sections : [];
     const cards = sections.map(sectionCard).join('');
-    $('#main').innerHTML = (office.briefing === null ? '<article class="pcard empty"><h2>Briefing</h2><div class="md"><p>No briefing.md yet.</p></div></article>' : cards) + logCard() + readmeCard();
+    const convoCard = '<article class="pcard wide convo" id="convo"><h2>Conversation</h2><div class="none">Loading…</div></article>';
+    $('#main').innerHTML = convoCard + (office.briefing === null ? '<article class="pcard empty"><h2>Briefing</h2><div class="md"><p>No briefing.md yet.</p></div></article>' : cards) + logCard() + readmeCard();
+    convo.stuck = true;
+    loadConvo();
+    if (location.hash === '#conversation') setTimeout(() => { const c = $('#convo'); if (c) c.scrollIntoView({ behavior: 'smooth' }); }, 300);
   }
 
   function renderSide() {
@@ -132,8 +202,20 @@
   function render() {
     const json = JSON.stringify(office);
     if (json === lastJSON) return;
+    const first = lastJSON === null;
     lastJSON = json;
-    renderHead(); renderStage(); renderMain(); renderSide();
+    renderHead(); renderStage(); renderSide();
+    /* The main column re-renders in full only the first time; afterwards the
+       briefing cards refresh in place so the conversation keeps its scroll. */
+    if (first) { renderMain(); startConvoPolling(); }
+    else {
+      const sections = office.briefing ? office.briefing.sections : [];
+      const keep = $('#convo');
+      $('#main').innerHTML = '';
+      $('#main').appendChild(keep);
+      $('#main').insertAdjacentHTML('beforeend', (office.briefing === null ? '<article class="pcard empty"><h2>Briefing</h2><div class="md"><p>No briefing.md yet.</p></div></article>' : sections.map(sectionCard).join('')) + logCard() + readmeCard());
+      loadConvo();
+    }
   }
 
   $('#launch').addEventListener('click', async () => {

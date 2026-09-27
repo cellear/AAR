@@ -86,6 +86,8 @@ In each office AAR reads only these files and lists the rest by name:
     GET  /api/offices/<folder>   one snapshot
     GET  /api/cos                the Chief of Staff's cross-office roll-up
     GET  /api/launch/<folder>    the copy-to-terminal command for the office
+    GET  /api/transcript/<folder> the office's conversation: prompts, replies, folded tool calls
+                                 ?session=<id> picks a transcript; ?before=<i>&limit=<n> pages back
     GET  /api/hire/options       models, starter cast, colours, next order number
     POST /api/hire               the hire wizard: writes one new office folder
     GET  /api/events             SSE: an init frame, then office / frontDesk / git / staff / stale frames

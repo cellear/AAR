@@ -122,7 +122,7 @@
       ? `${esc(o.name)}'s session is running (${esc(o.session.kind)}). Open session copies the command to reach it.`
       : `To talk to ${esc(o.name)}: press <b>Open session</b>, which copies a command to the clipboard; open a terminal, paste it, and Claude Code starts in this office as ${esc(o.name)}.`;
     return `<div class="fpanel note"><div class="head"><b>${esc(o.name)}</b><span class="rolebig">${esc(where)}</span><span>${esc(session)} · last heard ${esc(relTime(o.lastHeard))}</span></div>${body}
-      <div class="actions"><a class="btn primary" href="/office/${encodeURIComponent(o.id)}">Open office</a><button class="btn launch" data-id="${esc(o.id)}">Open session</button>${o.cos ? '<a class="btn" href="/cos">Cross-office view</a>' : ''}${badges(o.badges)}</div>
+      <div class="actions"><a class="btn primary" href="/office/${encodeURIComponent(o.id)}">Open office</a><a class="btn" href="/office/${encodeURIComponent(o.id)}#conversation">Conversation</a><button class="btn launch" data-id="${esc(o.id)}">Open session</button>${o.cos ? '<a class="btn" href="/cos">Cross-office view</a>' : ''}${badges(o.badges)}</div>
       <div class="how">${how}</div></div>`;
   }
 

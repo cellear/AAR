@@ -474,3 +474,27 @@ details.about[open] summary { margin-bottom: 10px; }
 .office-side .how { font-size: 13px; line-height: 1.45; }
 .firstrun .note p { margin: 0; font-size: 14px; }
 .firstrun .note p + p { margin-top: 8px; }
+
+/* ---------- conversation ---------- */
+.convo .tools-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.convo select { font: inherit; font-size: 12px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; background: #fff; }
+.convo .msgs { display: flex; flex-direction: column; gap: 10px; max-height: 70vh; overflow-y: auto; padding-right: 4px; }
+.msg { display: grid; grid-template-columns: 64px 1fr; gap: 10px; font-size: 14px; }
+.msg .who { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; padding-top: 9px; text-align: right; }
+.msg .who .t { display: block; text-transform: none; letter-spacing: 0; font-size: 11px; }
+.msg .body { padding: 8px 12px; border-radius: 8px; min-width: 0; }
+.msg.user .body { background: var(--paper-deep); border-top-left-radius: 2px; }
+.msg.assistant .body { background: var(--card); border: 1px solid var(--line); border-top-left-radius: 2px; }
+.msg.assistant.error .body { border-color: var(--needs); }
+.msg .body .md > :first-child { margin-top: 0; }
+.msg .body .md > :last-child { margin-bottom: 0; }
+.msg .body .md pre { background: var(--paper-deep); padding: 8px 10px; border-radius: 6px; overflow: auto; font-size: 12.5px; }
+.msg .body .md code { font-size: 12.5px; }
+.msg .body .md ol, .msg .body .md ul { padding-left: 20px; }
+.msg .tool { font-size: 12px; margin-top: 6px; }
+.msg .tool summary { cursor: pointer; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msg .tool summary b { color: var(--ink); font-family: var(--font); font-weight: 600; }
+.msg .tool.err summary b { color: var(--needs); }
+.msg .tool pre { background: var(--paper-deep); padding: 6px 8px; border-radius: 5px; font-size: 11.5px; max-height: 260px; overflow: auto; white-space: pre-wrap; word-break: break-word; margin: 4px 0 0; }
+.convo .earlier { align-self: center; margin-bottom: 4px; }
+.convo .none { color: var(--muted); font-style: italic; font-size: 14px; }

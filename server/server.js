@@ -17,6 +17,7 @@ const state = require('./lib/state');
 const setup = require('./lib/setup');
 const launch = require('./lib/launch');
 const hire = require('./lib/hire');
+const transcripts = require('./lib/transcripts');
 const { createStore } = require('./lib/store');
 
 const PUBLIC = path.join(loadConfig.APP_ROOT, 'public');
@@ -188,6 +189,24 @@ function createHandler(cfg, store) {
         const id = decodeURIComponent(p.slice('/api/launch/'.length));
         const office = offices().offices.find((o) => o.id === id);
         return office ? json(res, 200, { office: id, ...launch.launchCommand(office) }) : json(res, 404, { error: 'no such office' });
+      }
+      if (p.startsWith('/api/transcript/')) {
+        /* The conversation for one office: ?session=<id> picks a transcript
+           (default: the live one, else the newest); ?before=<i>&limit=<n>
+           page backwards through messages. */
+        const id = decodeURIComponent(p.slice('/api/transcript/'.length));
+        const office = offices().offices.find((o) => o.id === id);
+        if (!office) return json(res, 404, { error: 'no such office' });
+        const sessions = transcripts.sessionsFor(office.folder, office.session).map((s) => ({ id: s.id, mtime: s.mtime, size: s.size, live: s.live }));
+        const want = url.searchParams.get('session');
+        const chosen = transcripts.sessionsFor(office.folder, office.session).find((s) => (want ? s.id === want : true)) || null;
+        if (!chosen) return json(res, 200, { office: id, sessions, session: null, messages: [], total: 0, from: 0 });
+        const all = transcripts.conversationFor(chosen.file) || [];
+        const limit = Math.max(1, Math.min(500, Number(url.searchParams.get('limit')) || 60));
+        const before = url.searchParams.has('before') ? Number(url.searchParams.get('before')) : all.length;
+        const end = Math.max(0, Math.min(all.length, Number.isFinite(before) ? before : all.length));
+        const from = Math.max(0, end - limit);
+        return json(res, 200, { office: id, sessions, session: chosen.id, live: chosen.live, messages: all.slice(from, end), total: all.length, from });
       }
       if (p === '/api/hire/options') return json(res, 200, hire.options(cfg));
       if (p === '/api/cos') {
