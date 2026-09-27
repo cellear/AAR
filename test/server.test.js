@@ -89,7 +89,14 @@ test('server: first run, setup, snapshots, method and path rules', async (t) => 
   r = await call(base, '/avatars/' + encodeURIComponent('Chief of Staff') + '/avatar.png');
   assert.equal(r.status, 200);
   assert.equal(r.headers.get('content-type'), 'image/png');
+  fs.mkdirSync(path.join(cfg.staffDir, 'Chief of Staff', 'people'));
+  fs.writeFileSync(path.join(cfg.staffDir, 'Chief of Staff', 'people', 'ada.jpg'), Buffer.from([0xff, 0xd8]));
+  r = await call(base, '/avatars/' + encodeURIComponent('Chief of Staff') + '/people/ada.jpg');
+  assert.equal(r.status, 200);
+  assert.equal(r.headers.get('content-type'), 'image/jpeg');
   for (const p of [
+    '/avatars/' + encodeURIComponent('Chief of Staff') + '/people/..%2faa.conf',
+    '/avatars/' + encodeURIComponent('Chief of Staff') + '/people/notes.md',
     '/avatars/' + encodeURIComponent('Chief of Staff') + '/aa.conf',
     '/avatars/' + encodeURIComponent('Chief of Staff') + '/office.png',
     '/avatars/%2e%2e/cfg.json',

@@ -99,11 +99,15 @@ function createHandler(cfg, store) {
       if (!file || path.dirname(file) !== CAST) return json(res, 404, { error: 'not found' });
       return sendFile(res, file, { head });
     }
-    if (parts.length !== 2 || !['avatar.png', 'office.png'].includes(parts[1])) return json(res, 404, { error: 'not found' });
+    /* /avatars/<office>/avatar.png, office.png, or people/<image>. */
+    const isPeople = parts.length === 3 && parts[1] === 'people' && /\.(png|jpe?g|gif|webp)$/i.test(parts[2]);
+    if (!isPeople && (parts.length !== 2 || !['avatar.png', 'office.png'].includes(parts[1]))) return json(res, 404, { error: 'not found' });
     const officeDir = resolveSafe(cfg.staffDir, parts[0]);
     if (!officeDir || path.dirname(officeDir) !== cfg.staffDir) return json(res, 404, { error: 'not found' });
     if (!fs.existsSync(path.join(officeDir, 'aa.conf'))) return json(res, 404, { error: 'not found' });
-    return sendFile(res, path.join(officeDir, parts[1]), { head });
+    const file = isPeople ? resolveSafe(path.join(officeDir, 'people'), parts[2]) : path.join(officeDir, parts[1]);
+    if (!file || (isPeople && path.dirname(file) !== path.join(officeDir, 'people'))) return json(res, 404, { error: 'not found' });
+    return sendFile(res, file, { head });
   }
 
   async function post(req, res, pathname) {
