@@ -248,3 +248,49 @@ details.about[open] summary { margin-bottom: 10px; }
   .desk .standee { width: 100px; height: 170px; }
   .desk .bubble { margin-bottom: 20px; }
 }
+
+/* ---------- Chief of Staff view ---------- */
+.cos-body { max-width: 1100px; margin: 0 auto; padding: 20px 20px 60px; }
+.cos-tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin-bottom: 20px; }
+.cos-tabs a { padding: 8px 14px; text-decoration: none; color: var(--muted); font-size: 14px; border-bottom: 3px solid transparent; margin-bottom: -1px; display: flex; gap: 6px; align-items: center; }
+.cos-tabs a.on { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+.cos-tabs .count { font-size: 11px; background: var(--paper-deep); color: var(--muted); border-radius: 999px; padding: 1px 7px; }
+.cos-tabs .count.hot { background: var(--needs); color: #fff; }
+.panel { display: none; }
+.panel.on { display: block; }
+.needs-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.needs-list li { background: var(--note); color: var(--note-ink); padding: 12px 16px; border-radius: 3px 10px 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.12); display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: center; font-size: 16px; }
+.needs-list li:nth-child(odd) { transform: rotate(-0.5deg); }
+.needs-list li:nth-child(even) { transform: rotate(0.4deg); }
+.needs-list .thumb { width: 56px; height: 56px; display: flex; align-items: flex-end; justify-content: center; }
+.needs-list .thumb img, .needs-list .thumb svg { max-width: 100%; max-height: 100%; object-fit: contain; }
+.needs-list .thumb svg { width: 32px; height: 56px; }
+.needs-list .who { font-size: 12px; color: rgba(74,64,32,0.7); }
+.needs-list .who a { color: inherit; }
+.cos-empty { color: var(--muted); font-style: italic; }
+.dl-groups h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin: 18px 0 8px; }
+.dl-groups .deadlines li { background: var(--card); border: 1px solid var(--line); border-radius: 5px; padding: 8px 12px; }
+.tag { font-size: 11px; padding: 1px 7px; border-radius: 4px; background: var(--paper-deep); color: var(--muted); text-decoration: none; white-space: nowrap; }
+.tag:hover { color: var(--ink); }
+.open-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+.staff-table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; font-size: 14px; }
+.staff-table th, .staff-table td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.staff-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); background: var(--paper-deep); }
+.staff-table tr:last-child td { border-bottom: 0; }
+.staff-table .thumb { width: 40px; height: 48px; display: inline-flex; align-items: flex-end; justify-content: center; vertical-align: middle; margin-right: 8px; }
+.staff-table .thumb img, .staff-table .thumb svg { max-width: 100%; max-height: 100%; object-fit: contain; }
+.staff-table .thumb svg { width: 24px; height: 44px; }
+.staff-table a { color: var(--ink); text-decoration: none; font-weight: 600; }
+.staff-table .bubble-cell { color: var(--muted); max-width: 320px; }
+.sheet-tools { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; font-size: 13px; color: var(--muted); }
+.sheet { background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow); padding: 36px 44px; max-width: 8.5in; margin: 0 auto; font-size: 14px; line-height: 1.4; }
+.sheet h1 { font-size: 20px; margin: 0 0 8px; }
+.sheet h2 { font-size: 14px; margin: 16px 0 6px; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #ccc; padding-bottom: 2px; }
+.sheet h3 { font-size: 14px; margin: 10px 0 4px; }
+.sheet ul { padding-left: 18px; margin: 4px 0; }
+.sheet li { margin: 2px 0; }
+.sheet input[type=checkbox] { margin-right: 6px; }
+.sheet table { border-collapse: collapse; font-size: 13px; }
+.sheet td, .sheet th { border: 1px solid #ccc; padding: 2px 8px; }
+.sheet hr { border: 0; border-top: 1px dashed #bbb; margin: 14px 0; }
+.sheet li:has(> input[type=checkbox]) { list-style: none; margin-left: -18px; }

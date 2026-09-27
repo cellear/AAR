@@ -1,0 +1,21 @@
+/* print.css: the morning sheet on one double-sided US Letter page. Everything
+   but the sheet is hidden; the sheet fills the page with tight margins and
+   compact type. Sections that start near a page edge are allowed to break so
+   the second side is used before anything is cut. */
+@page { size: letter; margin: 0.5in 0.55in; }
+@media print {
+  body { background: #fff !important; color: #000; font-size: 11pt; }
+  .office-head, .cos-tabs, .sheet-tools, .toast, .topbar, .desk { display: none !important; }
+  .cos-body { padding: 0; max-width: none; }
+  .panel { display: none !important; }
+  .panel.print { display: block !important; }
+  .sheet { border: 0; box-shadow: none; padding: 0; max-width: none; margin: 0; font-size: 10.5pt; line-height: 1.3; }
+  .sheet h1 { font-size: 15pt; margin-bottom: 4pt; }
+  .sheet h2 { font-size: 10.5pt; margin: 9pt 0 3pt; page-break-after: avoid; }
+  .sheet h3 { font-size: 10.5pt; margin: 6pt 0 2pt; page-break-after: avoid; }
+  .sheet ul { margin: 2pt 0; }
+  .sheet li { page-break-inside: avoid; }
+  .sheet a { color: #000; text-decoration: none; }
+  .sheet a[href^="http"]::after { content: ""; }
+  .sheet img { max-height: 1.2in; }
+}

@@ -83,6 +83,14 @@ test('server: first run, setup, snapshots, method and path rules', async (t) => 
   assert.equal(r.status, 200);
   assert.equal(r.body.needs[0].text, 'Pick a name');
   assert.equal(r.body.openItems[0].items.length, 2);
+  assert.equal(r.body.morningSheet, null);
+  fs.writeFileSync(path.join(cfg.staffDir, 'Chief of Staff', 'mornings', '2026-09-26.md'), '# Friday\n- old');
+  fs.writeFileSync(path.join(cfg.staffDir, 'Chief of Staff', 'mornings', '2026-09-27.md'), '# Saturday\n- [ ] one');
+  r = await call(base, '/api/cos');
+  assert.equal(r.body.morningSheet.file, '2026-09-27.md');
+  assert.equal(r.body.morningSheet.date, '2026-09-27');
+  assert.match(r.body.morningSheet.markdown, /Saturday/);
+  assert.equal(r.body.cosName, 'Casey');
 
   /* Images: only the two names, only inside an office, no traversal. */
   fs.writeFileSync(path.join(cfg.staffDir, 'Chief of Staff', 'avatar.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]));

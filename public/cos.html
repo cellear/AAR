@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cross-office</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%235b7c99%27/%3E%3Ccircle cx=%2716%27 cy=%2711%27 r=%275%27 fill=%27%23fffdf8%27/%3E%3Cpath d=%27M7 27c0-6 4-9 9-9s9 3 9 9z%27 fill=%27%23fffdf8%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/print.css">
+</head>
+<body class="office">
+<header class="office-head">
+  <a class="back" href="/">← Lobby</a>
+  <h1><span class="dot" id="dot"></span><span id="name">…</span></h1>
+  <span class="role">Chief of Staff · cross-office</span>
+  <div class="right">
+    <span class="tabs"><a id="officeLink" href="#">Office</a><a class="on" href="/cos">Cross-office</a></span>
+    <span id="polled" class="sessions-note"></span>
+  </div>
+</header>
+<main class="cos-body">
+  <nav class="cos-tabs" id="tabs">
+    <a href="#needs" data-tab="needs">Needs you <span class="count" id="c-needs">0</span></a>
+    <a href="#deadlines" data-tab="deadlines">Deadlines <span class="count" id="c-deadlines">0</span></a>
+    <a href="#open" data-tab="open">Open items <span class="count" id="c-open">0</span></a>
+    <a href="#staff" data-tab="staff">Staff</a>
+    <a href="#sheet" data-tab="sheet">Morning sheet</a>
+  </nav>
+  <section class="panel" id="p-needs"></section>
+  <section class="panel" id="p-deadlines"></section>
+  <section class="panel" id="p-open"></section>
+  <section class="panel" id="p-staff"></section>
+  <section class="panel print" id="p-sheet"></section>
+</main>
+<script src="/vendor/marked.min.js"></script>
+<script src="/js/render.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/cos.js"></script>
+</body>
+</html>

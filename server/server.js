@@ -168,7 +168,14 @@ function createHandler(cfg, store) {
       if (p === '/api/cos') {
         const all = offices();
         if (!all.cos) return json(res, 404, { error: 'no office has cos=yes', warnings: all.staff.warnings });
-        return json(res, 200, { cos: all.cos.id, ...state.buildRollup({ snapshots: all.offices, cos: all.cos }), polledAt: all.polledAt });
+        const rollup = state.buildRollup({ snapshots: all.offices, cos: all.cos });
+        if (rollup.morningSheet) {
+          /* The sheet's text, read here so the page needs one request. */
+          const file = resolveSafe(path.join(all.cos.folder, 'mornings'), rollup.morningSheet.file);
+          try { rollup.morningSheet.markdown = file ? fs.readFileSync(file, 'utf8') : null; } catch { rollup.morningSheet.markdown = null; }
+          rollup.morningSheet.date = (/^(\d{4}-\d{2}-\d{2})/.exec(rollup.morningSheet.file) || [])[1] || null;
+        }
+        return json(res, 200, { cos: all.cos.id, cosName: all.cos.name, ...rollup, polledAt: all.polledAt });
       }
       if (p === '/api/events') {
         return store.hub.add(req, res, { type: 'init', ...store.initFrame() });
