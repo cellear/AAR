@@ -10,12 +10,14 @@
 <body>
 <header class="topbar">
   <h1 id="brand">AAR</h1>
-  <span class="staffdir" id="staffdir"></span>
+  <span class="staffdir" id="staffdir" title="Click to point the app at another staff folder"></span>
+  <a class="helplink" id="helplink" href="#help">How this works</a>
   <div class="stats" id="stats"><span>connecting…</span></div>
   <span class="viewtoggle" id="viewtoggle" style="display:none"><a href="#" data-view="floor">Floor</a><a href="#cards" data-view="cards">Cards</a></span>
   <a class="hirebtn" href="/hire" id="hirebtn" style="display:none">Hire</a>
 </header>
 <main>
+  <div id="overlay"></div>
   <section class="firstrun" id="firstrun" style="display:none"></section>
   <section class="floor" id="floor" style="display:none">
     <a class="close" id="close" href="#" style="display:none">✕ back to everyone</a>

@@ -27,6 +27,12 @@ To see the whole thing before hiring anyone for real, seed a sample staff:
     npm run demo -- ~/aar-demo-staff
     AAR_STAFF_DIR=~/aar-demo-staff npm start
 
+To forget this machine's settings and start over as if for the first time:
+
+    npm run reset
+
+That removes `aar.config.json` and nothing else. No staff folder is touched.
+
 Environment overrides, mostly for tests: `AAR_CONFIG` (path to the config
 file), `AAR_STAFF_DIR`, `AAR_PORT`, `AAR_NO_OPEN=1` (do not open the browser).
 
@@ -45,8 +51,9 @@ AAR is two things that live apart:
   path, for example `~/aar-staff` or `~/Sites/aar-staff`.
 
 `aar.config.json` in the app folder records which staff folder the app is
-pointed at. The first-run screen lets you type the path, and you can edit the
-file by hand later. A staff folder created inside the app checkout works, but
+pointed at. The first-run screen lets you type the path; afterwards, click
+the path in the page header to point at another folder, or edit the file by
+hand. `npm start` prints both paths every time it starts. A staff folder created inside the app checkout works, but
 its git badges would then describe the app's repository rather than the
 staff's, so `STAFF/` and `staff/` inside the checkout are gitignored as a
 safety net.
@@ -85,8 +92,11 @@ In each office AAR reads only these files and lists the rest by name:
     GET  /avatars/<folder>/avatar.png, /avatars/<folder>/office.png, /avatars/cast/<file>
     POST /api/setup              first run only: create the staff folder
 
-Every other method is answered 405 before any path is resolved. The two POSTs
-are the app's only writes, and neither ever overwrites an existing folder.
+    POST /api/config             point the app at another staff folder (writes aar.config.json)
+
+Every other method is answered 405 before any path is resolved. The three
+POSTs are the app's only writes; none ever overwrites an existing folder or
+touches an office's files.
 
 ## Status
 

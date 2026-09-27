@@ -46,9 +46,25 @@ test('createStaff uses the default name, refuses an existing staff, and rejects 
   assert.equal(staff.discoverOffices(c2.staffDir).length, 0);
 });
 
-test('createStaff can target a folder that does not exist yet', () => {
+test('createStaff can target a folder that does not exist yet and says so', () => {
   const c = cfg();
   const target = path.join(c.staffDir, 'nested', 'staff');
-  setup.createStaff({ cfg: c, staffDir: target, name: 'Robin', persist: false });
+  const r = setup.createStaff({ cfg: c, staffDir: target, name: 'Robin', persist: false });
+  assert.equal(r.createdFolder, true);
   assert.equal(staff.discoverOffices(target)[0].name, 'Robin');
+  const r2 = setup.createStaff({ cfg: cfg(), name: 'Sam', persist: false });
+  assert.equal(r2.createdFolder, false);
+});
+
+test('createStaff writes the chosen accent and starter avatar, and rejects bad ones', () => {
+  const c = cfg();
+  setup.createStaff({ cfg: c, name: 'Alfred', accent: '#2E7D6B', avatar: 'eric.png', persist: false });
+  const conf = staff.parseConf(fs.readFileSync(path.join(c.staffDir, 'Chief of Staff', 'aa.conf'), 'utf8'));
+  assert.equal(conf.accent, '#2e7d6b');
+  assert.equal(conf.avatar, 'eric.png');
+  const c2 = cfg();
+  assert.throws(() => setup.createStaff({ cfg: c2, name: 'A', avatar: '../x.png', persist: false }), (e) => e.status === 400);
+  assert.throws(() => setup.createStaff({ cfg: c2, name: 'A', accent: 'red', persist: false }), (e) => e.status === 400);
+  const r = setup.createStaff({ cfg: c2, name: 'A', avatar: 'own', persist: false });
+  assert.equal(staff.parseConf(fs.readFileSync(path.join(r.staffDir, 'Chief of Staff', 'aa.conf'), 'utf8')).avatar, '');
 });

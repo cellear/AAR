@@ -8,7 +8,8 @@
   "scripts": {
     "start": "node server/server.js",
     "test": "node --test \"test/**/*.test.js\"",
-    "demo": "node server/demo.js"
+    "demo": "node server/demo.js",
+    "reset": "node server/reset.js"
   },
   "engines": {
     "node": ">=22"

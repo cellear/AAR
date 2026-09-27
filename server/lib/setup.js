@@ -26,14 +26,31 @@ function validName(name) {
 
 /* Create the staff. `staffDir` may override the configured folder; the choice
    is written back to aar.config.json so the next start finds it. */
-function createStaff({ cfg, staffDir, name, now = new Date(), persist = true }) {
+function validAccent(accent) {
+  const a = String(accent || '').trim().toLowerCase();
+  if (!a) return '#5b7c99';
+  if (!/^#[0-9a-f]{6}$/.test(a)) throw new SetupError(400, 'the accent must be a hex colour like #5b7c99');
+  return a;
+}
+
+function validAvatar(avatar, cfg) {
+  const a = String(avatar || '').trim();
+  if (!a || a === 'own') return '';
+  if (!/^[A-Za-z0-9._-]+\.png$/.test(a) || !fs.existsSync(path.join(cfg.appRoot, 'assets', 'avatars', a))) throw new SetupError(400, 'unknown starter avatar');
+  return a;
+}
+
+function createStaff({ cfg, staffDir, name, accent, avatar, now = new Date(), persist = true }) {
   const dir = path.resolve(config.expandHome(String(staffDir || cfg.staffDir).trim()));
   if (!dir || dir === path.parse(dir).root) throw new SetupError(400, 'staff folder must be a real folder path');
   if (staff.discoverOffices(dir).length > 0) throw new SetupError(409, `a staff already exists in ${dir}`);
   const assistant = validName(name);
+  const folderExisted = fs.existsSync(dir);
   const vars = {
     name: assistant,
     role: 'Chief of Staff',
+    accent: validAccent(accent),
+    avatar: validAvatar(avatar, cfg),
     brand: cfg.brand,
     date: localISODate(now),
     staffDir: dir
@@ -49,6 +66,7 @@ function createStaff({ cfg, staffDir, name, now = new Date(), persist = true }) 
   }
   return {
     staffDir: dir,
+    createdFolder: !folderExisted,
     office: DEFAULT_FOLDER,
     name: assistant,
     gitInitCommand: `cd "${dir}" && git init && git add -A && git commit -m "New staff: ${assistant}, Chief of Staff"`

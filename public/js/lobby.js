@@ -213,38 +213,119 @@
     $('#floor').style.display = !empty && view === 'floor' ? '' : 'none';
     $('#lobby').style.display = !empty && view === 'cards' ? '' : 'none';
     if (empty) { renderFirstRun(); return; }
+    delete $('#firstrun').dataset.ready;
     renderWarnings();
     if (view === 'cards') renderCards(); else renderFloor();
     first = false;
   }
 
-  /* ---------- first run ---------- */
-  function renderFirstRun() {
+  /* ---------- how it works, first run, change folder ---------- */
+  function howItWorks(brand) {
+    return `
+      <h2>How ${esc(brand)} works</h2>
+      <p><b>${esc(brand)} is a window, not a control panel.</b> It shows a staff of AI administrative assistants: who is awake, what each one is doing, and who needs you. It reads files and Claude Code's own session list. It never runs a session and never edits an assistant's files.</p>
+      <ol class="steps">
+        <li><b>The staff folder.</b> One folder you choose, outside this app, holding one subfolder per office. Make it a git repository so cloud sessions can see it. A path with no spaces is safest, such as <code>~/aar-staff</code>.</li>
+        <li><b>An office</b> is a folder with an <code>aa.conf</code> in it. It holds the assistant's <code>README.md</code>, <code>briefing.md</code> (what they know now), <code>log.md</code> (one entry per session, never edited), <code>status.md</code> (three lines the floor shows) and <code>CLAUDE.md</code> (how they behave).</li>
+        <li><b>The Chief of Staff</b> is the first office, created for you on this screen. The others come from the <b>Hire</b> button.</li>
+        <li><b>Talking to an assistant</b> happens in a terminal. Press <b>Open session</b> on the floor, paste the command, and Claude Code starts in that office. The floor updates within seconds.</li>
+      </ol>
+      <div class="note">${esc(brand)} writes exactly three things: the staff folder when you create it here, a new office when you hire, and its own settings file (<code>aar.config.json</code> in the app folder) when you change the staff folder. <code>npm run reset</code> forgets the settings; it never touches a staff folder.</div>`;
+  }
+
+  let castOptions = null;
+  async function loadCast() {
+    if (castOptions) return castOptions;
+    try { castOptions = await getJSON('/api/hire/options'); } catch { castOptions = { cast: [], accents: ['#5b7c99', '#c2603f', '#8a5a9e', '#2e7d6b'] }; }
+    return castOptions;
+  }
+
+  function pickerHTML(opts, accent) {
+    const swatches = opts.accents.map((a) => `<span class="swatch ${a === accent ? 'on' : ''}" data-accent="${esc(a)}" style="background:${esc(a)}"></span>`).join('');
+    const own = `<label class="on"><input type="radio" name="avatar" value="own" checked><div class="fig">${silhouette(accent)}</div>Supply my own</label>`;
+    const cast = opts.cast.map((c) => `<label><input type="radio" name="avatar" value="${esc(c.file)}"><div class="fig"><img src="${esc(c.url)}" alt=""></div>${esc(c.label)}</label>`).join('');
+    return `<label>Accent colour<input name="accent" value="${esc(accent)}" pattern="#[0-9a-fA-F]{6}"><div class="swatches">${swatches}</div></label>
+      <label>Standee<span class="path-note"> a starter picture, or drop your own avatar.png into the office later</span></label><div class="cast">${own}${cast}</div>`;
+  }
+
+  function wirePicker(form) {
+    form.querySelector('.swatches').addEventListener('click', (e) => {
+      const sw = e.target.closest('.swatch'); if (!sw) return;
+      form.accent.value = sw.dataset.accent;
+      form.querySelectorAll('.swatch').forEach((x) => x.classList.toggle('on', x === sw));
+      const fig = form.querySelector('.cast label:first-child .fig'); if (fig) fig.innerHTML = silhouette(sw.dataset.accent);
+    });
+    form.querySelector('.cast').addEventListener('change', () => {
+      form.querySelectorAll('.cast label').forEach((l) => l.classList.toggle('on', l.querySelector('input').checked));
+    });
+  }
+
+  async function renderFirstRun() {
     const box = $('#firstrun');
     if (box.dataset.ready) return;
     box.dataset.ready = '1';
-    box.innerHTML = `
-      <h2>No staff yet</h2>
-      <p>${esc(state.staff.brand)} is pointed at a folder with no office in it. Create a staff there with one office, the Chief of Staff, and hire the rest from the lobby.</p>
-      <form id="setup">
-        <label>Staff folder<input name="staffDir" value="${esc(state.staff.staffDir)}"></label>
-        <label>The Chief of Staff's name<input name="name" placeholder="Pick a name; you can change it later in aa.conf"></label>
-        <button class="primary" type="submit">Create staff</button>
-        <div class="err"></div>
-      </form>
-      <div class="result"></div>`;
-    $('#setup').addEventListener('submit', async (e) => {
+    const s = state.staff;
+    box.innerHTML = howItWorks(s.brand) + `<div class="actions"><button class="primary" id="begin" type="button">Set up the staff</button></div>`;
+    $('#begin').addEventListener('click', async () => {
+      const opts = await loadCast();
+      box.innerHTML = `
+        <h2>Create the staff</h2>
+        <p>One folder, one Chief of Staff. You can rename either later by editing the files.</p>
+        <form id="setup">
+          <label>Staff folder<input name="staffDir" value="${esc(s.staffDir)}" autocomplete="off"><div class="path-note ${s.exists ? '' : 'new'}" id="pathnote">${s.exists ? 'This folder exists and holds no office yet.' : 'This folder does not exist yet. It will be created.'}</div></label>
+          <label>The Chief of Staff's name<input name="name" placeholder="A first name; it goes into aa.conf, README.md and CLAUDE.md"></label>
+          ${pickerHTML(opts, '#5b7c99')}
+          <div class="actions"><button class="primary" type="submit">Create staff</button><button class="secondary" type="button" id="back">Back</button><span class="err"></span></div>
+        </form>
+        <div class="result"></div>`;
+      const form = $('#setup');
+      wirePicker(form);
+      $('#back').addEventListener('click', () => { delete box.dataset.ready; renderFirstRun(); });
+      form.staffDir.addEventListener('input', () => { $('#pathnote').textContent = 'Press Create staff; the page will say whether the folder was new.'; $('#pathnote').className = 'path-note'; });
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(form).entries());
+        const err = box.querySelector('.err');
+        err.textContent = '';
+        try {
+          const r = await postJSON('/api/setup', data);
+          form.querySelector('button.primary').disabled = true;
+          openOverlay(`<h2>${esc(r.name)} has an office</h2>
+            <p>${r.createdFolder ? `The folder <code>${esc(r.staffDir)}</code> did not exist, so it was created.` : `<code>${esc(r.staffDir)}</code> already existed; the office was added to it.`} It holds one office, <code>${esc(r.office)}</code>, and the app now points at it (remembered in <code>aar.config.json</code>).</p>
+            <p>To keep the staff in git, run this in a terminal:</p><pre>${esc(r.gitInitCommand)}</pre>
+            <p>Next: click ${esc(r.name)} on the floor, press <b>Open session</b>, paste the command into a terminal, and say hello. Hire the rest of the staff with the <b>Hire</b> button.</p>
+            <div class="actions"><button class="primary" type="button" id="tofloor">Go to the floor</button></div>`);
+          $('#tofloor').addEventListener('click', closeOverlay);
+        } catch (ex) {
+          err.textContent = ex.message;
+        }
+      });
+    });
+  }
+
+  function openOverlay(html) {
+    $('#overlay').innerHTML = `<div class="overlay"><section class="firstrun"><a class="closex" href="#">✕ close</a>${html}</section></div>`;
+    $('#overlay .closex').addEventListener('click', (e) => { e.preventDefault(); closeOverlay(); });
+    $('#overlay .overlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeOverlay(); });
+  }
+  function closeOverlay() { $('#overlay').innerHTML = ''; if (location.hash === '#help') history.replaceState(null, '', location.pathname); }
+
+  function changeFolder() {
+    const s = state.staff;
+    openOverlay(`
+      <h2>Change the staff folder</h2>
+      <p>The app is pointed at <code>${esc(s.staffDir)}</code>. The choice is stored in the app's settings file; the staff folder itself is never moved or changed. Point at a folder with offices in it and the floor switches to them. Point at an empty or missing folder and you get the first-run screen.</p>
+      <form id="repoint"><label>Staff folder<input name="staffDir" value="${esc(s.staffDir)}" autocomplete="off"></label>
+      <div class="actions"><button class="primary" type="submit">Use this folder</button><span class="err"></span></div></form>`);
+    $('#repoint').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const form = new FormData(e.target);
-      const err = box.querySelector('.err');
-      err.textContent = '';
+      const err = $('#repoint .err');
       try {
-        const r = await postJSON('/api/setup', { staffDir: form.get('staffDir'), name: form.get('name') });
-        box.querySelector('.result').innerHTML = `<p>Created <b>${esc(r.office)}</b> for ${esc(r.name)} in ${esc(r.staffDir)}. To keep it in git, run:</p><pre>${esc(r.gitInitCommand)}</pre>`;
-        e.target.querySelector('button').disabled = true;
-      } catch (ex) {
-        err.textContent = ex.message;
-      }
+        const r = await postJSON('/api/config', { staffDir: new FormData(e.target).get('staffDir') });
+        toast(`Now pointed at ${r.staffDir}` + (r.exists ? '' : ' (does not exist yet)'));
+        closeOverlay();
+        delete $('#firstrun').dataset.ready;
+      } catch (ex) { err.textContent = ex.message; }
     });
   }
 
@@ -262,7 +343,9 @@
     }
     const sel = e.target.closest('.person.sel');
     if (sel) { e.preventDefault(); location.hash = ''; return; }
-    if (e.target.closest('#close')) { e.preventDefault(); location.hash = ''; }
+    if (e.target.closest('#close')) { e.preventDefault(); location.hash = ''; return; }
+    if (e.target.closest('#helplink')) { e.preventDefault(); openOverlay(howItWorks(state.staff ? state.staff.brand : 'AAR')); return; }
+    if (e.target.closest('#staffdir') && state.staff) { e.preventDefault(); changeFolder(); }
   });
   window.addEventListener('hashchange', renderAll);
 

@@ -427,3 +427,35 @@ details.about[open] summary { margin-bottom: 10px; }
   .floor.focus .close { position: relative; top: auto; right: auto; display: block !important; text-align: right; padding: 8px 16px 0; }
   .floor.focus .ground { display: none; }
 }
+
+/* ---------- first run and help ---------- */
+.firstrun { max-width: 680px; }
+.firstrun h2 { font-size: 24px; }
+.firstrun p, .firstrun li { font-size: 15px; line-height: 1.5; }
+.firstrun ol { padding-left: 22px; }
+.firstrun li { margin: 6px 0; }
+.firstrun .steps b { color: var(--accent); }
+.firstrun .note { background: var(--note); color: var(--note-ink); padding: 10px 14px; border-radius: 3px 10px 10px 10px; font-size: 14px; margin: 14px 0; }
+.firstrun .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.firstrun .path-note { font-size: 13px; color: var(--muted); margin-top: 5px; }
+.firstrun .path-note.new { color: var(--needs); }
+.firstrun .swatches { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.firstrun .swatch { width: 28px; height: 28px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12); }
+.firstrun .swatch.on { border-color: var(--ink); }
+.firstrun .cast { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; margin-top: 8px; }
+.firstrun .cast label { margin: 0; cursor: pointer; text-align: center; color: var(--ink); font-size: 12px; border: 2px solid transparent; border-radius: 8px; padding: 6px 4px 4px; background: var(--paper); }
+.firstrun .cast label.on { border-color: var(--accent); background: #fff; }
+.firstrun .cast label input { display: none; }
+.firstrun .cast .fig { height: 84px; display: flex; align-items: flex-end; justify-content: center; }
+.firstrun .cast img, .firstrun .cast svg { max-height: 84px; max-width: 100%; object-fit: contain; }
+.firstrun .cast svg { width: 42px; height: 78px; }
+.firstrun .actions { display: flex; gap: 12px; align-items: center; margin-top: 18px; }
+.firstrun button.secondary { margin-top: 18px; padding: 9px 18px; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+.overlay { position: fixed; inset: 0; background: rgba(42,39,35,0.45); z-index: 20; display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow: auto; }
+.overlay .firstrun { margin: 0; }
+.overlay .closex { float: right; font-size: 14px; color: var(--muted); text-decoration: none; }
+.topbar .staffdir { cursor: pointer; }
+.topbar .staffdir:hover { text-decoration: underline; }
+.topbar .helplink { font-size: 13px; color: var(--muted); text-decoration: none; }
+.topbar .helplink:hover { color: var(--ink); }
+@media (max-width: 600px) { .firstrun .row { grid-template-columns: 1fr; } }

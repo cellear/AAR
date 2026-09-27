@@ -135,6 +135,27 @@ test('server: first run, setup, snapshots, method and path rules', async (t) => 
   r = await call(base, '/hire');
   assert.equal(r.status, 200);
 
+  /* Setup remembered the folder in the settings file. */
+  assert.equal(JSON.parse(fs.readFileSync(cfg.configPath, 'utf8')).staffDir, cfg.staffDir);
+
+  /* Change the staff folder: the third write. The server mutates the shared
+     cfg object, so remember the original path first. */
+  const original = cfg.staffDir;
+  const other = fs.mkdtempSync(path.join(os.tmpdir(), 'aar-other-'));
+  r = await call(base, '/api/config', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ staffDir: other }) });
+  assert.equal(r.status, 200);
+  assert.equal(r.body.staffDir, other);
+  assert.equal(JSON.parse(fs.readFileSync(cfg.configPath, 'utf8')).staffDir, other);
+  r = await call(base, '/api/offices');
+  assert.equal(r.body.staff.count, 0);
+  assert.equal(r.body.staff.staffDir, other);
+  r = await call(base, '/api/config', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ staffDir: '/' }) });
+  assert.equal(r.status, 400);
+  r = await call(base, '/api/config', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ staffDir: original }) });
+  assert.equal(r.status, 200);
+  r = await call(base, '/api/offices');
+  assert.equal(r.body.staff.count, 2);
+
   r = await call(base, '/');
   assert.equal(r.status, 200);
   assert.match(r.headers.get('content-type'), /text\/html/);

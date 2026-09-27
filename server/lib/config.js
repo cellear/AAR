@@ -82,10 +82,21 @@ function load() {
 /* Persist a change (first-run setup uses it to record the chosen staff folder).
    Only the stored keys are written; derived ones like appRoot are not. */
 function save(cfg) {
-  const file = configPath();
+  const file = cfg.configPath || configPath();
   const stored = {};
   for (const key of Object.keys(DEFAULTS)) stored[key] = cfg[key];
   fs.writeFileSync(file, JSON.stringify(stored, null, 2) + '\n');
 }
 
-module.exports = { DEFAULTS, APP_ROOT, configPath, expandHome, normalise, resolve, load, save };
+/* Point the app at another staff folder and remember it. Returns the new
+   absolute path. The folder need not exist yet: the first-run screen offers
+   to create it. */
+function setStaffDir(cfg, staffDir) {
+  const dir = path.resolve(expandHome(String(staffDir || '').trim()));
+  if (!dir || dir === path.parse(dir).root) throw new Error('staff folder must be a real folder path');
+  cfg.staffDir = dir;
+  save(cfg);
+  return dir;
+}
+
+module.exports = { DEFAULTS, APP_ROOT, configPath, expandHome, normalise, resolve, load, save, setStaffDir };

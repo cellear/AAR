@@ -21,7 +21,7 @@ const { createStore } = require('./lib/store');
 
 const PUBLIC = path.join(loadConfig.APP_ROOT, 'public');
 const CAST = path.join(loadConfig.APP_ROOT, 'assets', 'avatars');
-const POST_ROUTES = new Set(['/api/setup', '/api/hire']);
+const POST_ROUTES = new Set(['/api/setup', '/api/hire', '/api/config']);
 const MAX_BODY = 64 * 1024;
 
 const MIME = {
@@ -121,11 +121,25 @@ function createHandler(cfg, store) {
     }
     if (pathname === '/api/setup') {
       try {
-        const result = setup.createStaff({ cfg, staffDir: body.staffDir, name: body.name });
-        store.rebuild({ full: true });
+        const result = setup.createStaff({ cfg, staffDir: body.staffDir, name: body.name, accent: body.accent, avatar: body.avatar });
+        /* Remember the folder even when this run came from AAR_STAFF_DIR. */
+        cfg.staffDir = result.staffDir;
+        loadConfig.save(cfg);
+        store.repoint();
         return json(res, 201, result);
       } catch (err) {
         return json(res, err.status || 500, { error: err.message });
+      }
+    }
+    if (pathname === '/api/config') {
+      /* The third and last write: point the app at another staff folder. */
+      try {
+        const dir = loadConfig.setStaffDir(cfg, body.staffDir);
+        store.repoint();
+        const exists = reader.dirExists(dir);
+        return json(res, 200, { staffDir: dir, exists, offices: reader.staffExists(dir) ? store.current.staff.count : 0, configPath: cfg.configPath });
+      } catch (err) {
+        return json(res, 400, { error: err.message });
       }
     }
     if (pathname === '/api/hire') {
@@ -159,7 +173,7 @@ function createHandler(cfg, store) {
     try {
       if (p === '/api/staff') {
         const all = offices();
-        return json(res, 200, { staff: all.staff, polledAt: all.polledAt, errors: all.errors, stale: store.stale, config: { port: cfg.port, brand: cfg.brand, pollMs: cfg.pollMs, stuckMs: cfg.stuckMs, gitFetchMs: cfg.gitFetchMs, models: cfg.models } });
+        return json(res, 200, { staff: all.staff, polledAt: all.polledAt, errors: all.errors, stale: store.stale, configPath: cfg.configPath, config: { port: cfg.port, brand: cfg.brand, pollMs: cfg.pollMs, stuckMs: cfg.stuckMs, gitFetchMs: cfg.gitFetchMs, models: cfg.models } });
       }
       if (p === '/api/offices') {
         const all = offices();
@@ -222,13 +236,19 @@ function createServer(cfg, { live = true } = {}) {
 
 function start() {
   const cfg = loadConfig.load();
-  if (cfg.written) console.log(`wrote defaults to ${cfg.configPath}`);
   const server = createServer(cfg);
   server.listen(cfg.port, '127.0.0.1', () => {
     const url = `http://localhost:${cfg.port}/`;
-    console.log(`${cfg.brand}  read-only  staff: ${cfg.staffDir}`);
-    console.log(`${' '.repeat(cfg.brand.length)}  ${url}`);
-    if (!reader.staffExists(cfg.staffDir)) console.log('no staff yet: open the page to create one, or POST /api/setup');
+    const pad = ' '.repeat(cfg.brand.length);
+    console.log(`${cfg.brand}  ${url}`);
+    console.log(`${pad}  settings: ${cfg.configPath}${cfg.written ? ' (new, written with defaults)' : ''}`);
+    console.log(`${pad}  staff:    ${cfg.staffDir}${process.env.AAR_STAFF_DIR ? ' (from AAR_STAFF_DIR for this run only)' : ''}`);
+    if (!reader.dirExists(cfg.staffDir)) {
+      console.log(`${pad}  that folder does not exist yet. Nothing is created until you press "Create staff" on the page.`);
+    } else if (!reader.staffExists(cfg.staffDir)) {
+      console.log(`${pad}  that folder holds no office yet; the page offers to create the Chief of Staff.`);
+    }
+    console.log(`${pad}  read-only: the app writes only when you create the staff, hire, or change the staff folder. "npm run reset" forgets the settings.`);
     if (process.env.AAR_NO_OPEN !== '1' && process.stdout.isTTY) {
       const [cmd, args] = platform.openCommand(url);
       try { spawn(cmd, args, { stdio: 'ignore', detached: true }).on('error', () => {}).unref(); } catch { /* browser stays closed */ }

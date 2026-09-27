@@ -145,6 +145,19 @@ function createStore(cfg, { live = true, now = () => new Date(), sources = {} } 
     for (const t of timers) if (t.unref) t.unref();
   }
 
+  /* The staff folder changed: watch the new one and send everyone a fresh init. */
+  function repoint() {
+    if (watcher) { watcher.stop(); watcher = null; }
+    gitState = null;
+    sent = new Map();
+    current = null;
+    if (live) {
+      watcher = createWatcher(cfg.staffDir, () => { rebuild(); refreshGit(); });
+      refreshGit();
+    }
+    rebuild({ full: true });
+  }
+
   function stop() {
     for (const t of timers) clearInterval(t);
     timers = [];
@@ -153,7 +166,7 @@ function createStore(cfg, { live = true, now = () => new Date(), sources = {} } 
   }
 
   return {
-    start, stop, rebuild, pollSessions, refreshGit, hub,
+    start, stop, rebuild, repoint, pollSessions, refreshGit, hub,
     get current() { return live && current ? current : rebuild(); },
     get stale() { return stale; },
     initFrame
