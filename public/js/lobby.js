@@ -75,7 +75,7 @@
 
   function personHTML(o) {
     return `${pin(o)}<div class="fig">${figure(o)}</div><div class="shadow"></div>
-      <div class="plate"><div class="n"><span class="dot ${esc(o.liveness)}"></span>${esc(o.name)} <span class="ago" data-heard="${esc(o.lastHeard || '')}">${esc(shortRel(o.lastHeard))}</span></div>${summary(o)}</div>`;
+      <div class="plate"><div class="n"><span class="dot ${esc(o.liveness)}"></span>${esc(o.name)} <span class="ago" data-heard="${esc(o.lastHeard || '')}">${esc(shortRel(o.lastHeard))}</span></div>${o.role ? `<div class="r">${esc(o.role)}</div>` : ''}${summary(o)}</div>`;
   }
 
   function shortRel(iso) {
@@ -98,7 +98,6 @@
       if (rendered.get(o.id) !== json) {
         el.innerHTML = personHTML(o);
         el.style.setProperty('--accent', o.accent || '#5b7c99');
-        el.title = o.role || '';
         rendered.set(o.id, json);
       }
       el.className = `person ${quietClass(o)} ${focus === o.id ? 'sel' : ''}`;

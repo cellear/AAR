@@ -345,7 +345,8 @@ details.about[open] summary { margin-bottom: 10px; }
 .plate { margin-top: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px 7px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.12); width: 100%; }
 .plate .n { font-size: 15px; font-weight: 650; display: flex; gap: 7px; align-items: center; justify-content: center; }
 .plate .n .ago { font-weight: 400; font-size: 12px; color: var(--muted); }
-.plate .s { font-size: 12.5px; margin-top: 3px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.plate .r { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.plate .s { font-size: 12.5px; margin-top: 4px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .plate .s.none { color: var(--muted); font-style: italic; }
 .plate .s.need { color: var(--needs); font-weight: 600; }
 .person .pin { position: absolute; top: 8%; right: 18%; width: 22px; height: 22px; border-radius: 50%; background: var(--needs); color: #fff; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,.3); border: 2px solid #fff; }
@@ -361,7 +362,7 @@ details.about[open] summary { margin-bottom: 10px; }
 .floor.focus .person:not(.sel) .plate { color: var(--muted); }
 .floor.focus .person .fig { height: 150px; }
 .floor.focus .person .plate { padding: 3px 6px; }
-.floor.focus .person .plate .s, .floor.focus .person .plate .ago, .floor.focus .person .pin, .floor.focus .person .shadow { display: none; }
+.floor.focus .person .plate .s, .floor.focus .person .plate .r, .floor.focus .person .plate .ago, .floor.focus .person .pin, .floor.focus .person .shadow { display: none; }
 .floor.focus .person .plate .n { font-size: 12px; }
 .floor.focus .person:not(.sel):hover .fig img, .floor.focus .person:not(.sel):hover .fig svg { filter: none; }
 .floor.focus .person:not(.sel):hover .plate { color: var(--ink); }
