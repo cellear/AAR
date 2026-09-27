@@ -91,26 +91,76 @@
     return `<div class="msg ${esc(m.role)} ${m.apiError ? 'error' : ''}" data-i="${m.i}"><div class="who">${m.role === 'user' ? 'you' : esc(office.name)}<span class="t">${esc(when)}</span></div><div class="body">${body}</div></div>`;
   }
 
-  function renderConvo() {
-    const box = $('#convo');
-    if (!box) return;
+  const drawn = new Map();   /* message index -> JSON last drawn */
+
+  function barHTML() {
     const picker = convo.sessions.length > 1
       ? `<select id="sesspick">${convo.sessions.map((s) => `<option value="${esc(s.id)}" ${s.id === convo.session ? 'selected' : ''}>${s.live ? '● live · ' : ''}${esc(new Date(s.mtime).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }))} · ${esc(s.id.slice(0, 8))}</option>`).join('')}</select>`
       : '';
-    const bar = `<div class="tools-bar">${convo.session ? `<span>${convo.live ? '<span class="dot busy"></span> live session' : 'transcript'} · ${convo.total} message${convo.total === 1 ? '' : 's'}</span>` : ''}${picker}<span>${convo.session ? 'Everything ' + esc(office.name) + ' said in the terminal, as recorded by Claude Code. Tool calls are folded; click one to see what it did.' : ''}</span></div>`;
+    return `<div class="tools-bar">${convo.session ? `<span>${convo.live ? '<span class="dot busy"></span> live session' : 'transcript'} · ${convo.total} message${convo.total === 1 ? '' : 's'}</span>` : ''}${picker}<span>${convo.session ? 'Everything ' + esc(office.name) + ' said in the terminal, as recorded by Claude Code. Tool calls are folded; click one to see what it did.' : ''}</span></div>`;
+  }
+
+  /* Draw the card. The message list is patched, not rebuilt: existing
+     messages stay where they are (open tool details and all), changed ones
+     are replaced in place, new ones appended, earlier pages prepended with
+     the scroll held steady. The scroll position is only ever moved when the
+     reader was already at the bottom. */
+  function renderConvo({ prepended = 0 } = {}) {
+    const box = $('#convo');
+    if (!box) return;
     if (!convo.session) {
-      box.innerHTML = `<h2>Conversation</h2>${bar}<div class="none">No transcript on this Mac for this office yet. Transcripts appear once a session has run in the office folder in a terminal here; sessions from the desktop app or the cloud leave none.</div>`;
+      box.innerHTML = `<h2>Conversation</h2>${barHTML()}<div class="none">No transcript on this Mac for this office yet. Transcripts appear once a session has run in the office folder in a terminal here; sessions from the desktop app or the cloud leave none.</div>`;
+      drawn.clear();
       return;
     }
-    const earlier = convo.from > 0 ? `<button class="btn earlier" id="earlier">Show ${Math.min(60, convo.from)} earlier</button>` : '';
-    box.innerHTML = `<h2>Conversation</h2>${bar}<div class="msgs" id="msgs">${earlier}${convo.messages.map(msgHTML).join('') || '<div class="none">Nothing said yet.</div>'}</div>`;
-    const msgs = $('#msgs');
-    if (convo.stuck) msgs.scrollTop = msgs.scrollHeight;
-    msgs.addEventListener('scroll', () => { convo.stuck = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 40; });
+    let msgs = $('#msgs');
+    if (!msgs) {
+      box.innerHTML = `<h2>Conversation</h2>${barHTML()}<div class="msgs" id="msgs"><button class="btn earlier" id="earlier" style="display:none"></button></div>`;
+      msgs = $('#msgs');
+      drawn.clear();
+      msgs.addEventListener('scroll', () => { convo.stuck = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 40; });
+      msgs.addEventListener('click', (e) => { if (e.target.closest('#earlier')) loadConvo({ before: convo.from }); });
+    } else {
+      const bar = box.querySelector('.tools-bar');
+      const fresh = barHTML();
+      if (bar && bar.outerHTML !== fresh) bar.outerHTML = fresh;
+    }
     const pick = $('#sesspick');
-    if (pick) pick.addEventListener('change', () => { convo.session = pick.value; convo.messages = []; convo.stuck = true; loadConvo({ reset: true }); });
-    const more = $('#earlier');
-    if (more) more.addEventListener('click', () => loadConvo({ before: convo.from }));
+    if (pick && !pick.dataset.wired) { pick.dataset.wired = '1'; pick.addEventListener('change', () => { convo.session = pick.value; convo.messages = []; convo.stuck = true; drawn.clear(); msgs.querySelectorAll('.msg').forEach((n) => n.remove()); loadConvo({ reset: true }); }); }
+
+    const before = msgs.scrollHeight;
+    const top = msgs.scrollTop;
+    const wasStuck = convo.stuck;
+    const earlier = $('#earlier');
+    earlier.style.display = convo.from > 0 ? '' : 'none';
+    earlier.textContent = `Show ${Math.min(60, convo.from)} earlier`;
+
+    /* Remove anything drawn that is no longer in the list (a truncated file). */
+    const keep = new Set(convo.messages.map((m) => m.i));
+    for (const el of [...msgs.querySelectorAll('.msg')]) if (!keep.has(Number(el.dataset.i))) { el.remove(); drawn.delete(Number(el.dataset.i)); }
+
+    let anchor = earlier;   /* insert after this */
+    for (const m of convo.messages) {
+      const json = JSON.stringify(m);
+      let el = msgs.querySelector(`.msg[data-i="${m.i}"]`);
+      if (!el) {
+        anchor.insertAdjacentHTML('afterend', msgHTML(m));
+        el = anchor.nextElementSibling;
+      } else if (drawn.get(m.i) !== json) {
+        /* Keep any tool details the reader opened. */
+        const open = new Set([...el.querySelectorAll('details[open]')].map((d, i) => i));
+        el.outerHTML = msgHTML(m);
+        el = msgs.querySelector(`.msg[data-i="${m.i}"]`);
+        [...el.querySelectorAll('details')].forEach((d, i) => { if (open.has(i)) d.open = true; });
+      }
+      drawn.set(m.i, json);
+      anchor = el;
+    }
+    if (!convo.messages.length && !msgs.querySelector('.none')) msgs.insertAdjacentHTML('beforeend', '<div class="none">Nothing said yet.</div>');
+    if (convo.messages.length) { const n = msgs.querySelector('.none'); if (n) n.remove(); }
+
+    if (prepended) msgs.scrollTop = top + (msgs.scrollHeight - before);   /* hold the reader's place */
+    else if (wasStuck) msgs.scrollTop = msgs.scrollHeight;          /* follow the tail */
   }
 
   async function loadConvo({ before = null, reset = false } = {}) {
@@ -122,14 +172,11 @@
       const r = await getJSON(`/api/transcript/${encodeURIComponent(id)}?${q}`);
       convo.sessions = r.sessions; convo.total = r.total; convo.live = !!r.live;
       if (before !== null) {
-        /* Prepend the earlier page and keep the scroll where it was. */
-        const msgs = $('#msgs'); const h = msgs ? msgs.scrollHeight : 0;
         convo.messages = r.messages.concat(convo.messages); convo.from = r.from; convo.stuck = false;
-        renderConvo();
-        const m2 = $('#msgs'); if (m2) m2.scrollTop = m2.scrollHeight - h;
+        renderConvo({ prepended: r.messages.length });
         return;
       }
-      if (convo.session !== r.session) { convo.messages = []; convo.stuck = true; }
+      if (convo.session !== r.session) { convo.messages = []; convo.stuck = true; drawn.clear(); const m0 = $('#msgs'); if (m0) m0.querySelectorAll('.msg').forEach((n) => n.remove()); }
       convo.session = r.session;
       /* A poll returns the tail; merge by message index so earlier pages stay. */
       if (convo.messages.length && r.messages.length && r.from <= convo.messages[0].i) convo.messages = r.messages;
@@ -214,7 +261,6 @@
       $('#main').innerHTML = '';
       $('#main').appendChild(keep);
       $('#main').insertAdjacentHTML('beforeend', (office.briefing === null ? '<article class="pcard empty"><h2>Briefing</h2><div class="md"><p>No briefing.md yet.</p></div></article>' : sections.map(sectionCard).join('')) + logCard() + readmeCard());
-      loadConvo();
     }
   }
 
