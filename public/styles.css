@@ -471,3 +471,5 @@ details.about[open] summary { margin-bottom: 10px; }
 .fpanel .how { margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(74,64,32,.3); font-size: 13px; color: rgba(74,64,32,.8); }
 .firstrun .expand { font-size: 16px; }
 .office-side .how { font-size: 13px; line-height: 1.45; }
+.firstrun .note p { margin: 0; font-size: 14px; }
+.firstrun .note p + p { margin-top: 8px; }

@@ -96,7 +96,10 @@ In each office AAR reads only these files and lists the rest by name:
 
 Every other method is answered 405 before any path is resolved. The three
 POSTs are the app's only writes; none ever overwrites an existing folder or
-touches an office's files.
+touches an office's files. AAR never modifies or deletes a file it did not
+create: it adds a new office folder inside the staff folder, and it rewrites
+its own `aar.config.json`. The optional periodic `git fetch` updates the
+staff repository's knowledge of origin and changes no file or branch.
 
 ## Status
 

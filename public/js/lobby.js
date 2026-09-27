@@ -235,7 +235,8 @@
         <li><b>The Chief of Staff</b> is the first office, created for you on the next screen. The others come from the <b>Hire</b> button.</li>
         <li><b>Talking to an assistant</b> happens in a terminal. From their office, copy the command ${esc(brand)} gives you, paste it into a terminal, and Claude Code starts there as that assistant. The floor updates within seconds.</li>
       </ol>
-      <div class="note">${esc(brand)} writes exactly three things: the staff folder when you create it here, a new office when you hire, and its own settings file (<code>aar.config.json</code> in the app folder). <code>npm run reset</code> forgets the settings; it never touches a staff folder.</div>`;
+      <div class="note"><p>${esc(brand)} writes exactly three things: the staff folder when you create it here, a new office when you hire, and its own settings file (<code>aar.config.json</code> in the app folder). <code>npm run reset</code> forgets the settings; it never touches a staff folder.</p>
+      <p>${esc(brand)} never modifies or deletes a file it didn't create. It writes only inside the staff folder you name here, and only to add a new office; it never edits an existing one. The one exception is its own settings file in the app folder. If git fetch is left on, ${esc(brand)} also asks your staff repository what origin has, which changes nothing in your files or branches.</p></div>`;
   }
 
   let castOptions = null;
