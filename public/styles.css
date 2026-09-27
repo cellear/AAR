@@ -37,14 +37,16 @@ button { font: inherit; }
 /* ---------- header ---------- */
 .topbar {
   position: sticky; top: 0; z-index: 5;
-  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 16px; flex-wrap: nowrap; min-height: 52px;
   padding: 10px 20px;
   background: rgba(244, 239, 228, 0.92);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--line);
 }
 .topbar h1 { font-size: 20px; margin: 0; letter-spacing: 0.02em; }
-.topbar .staffdir { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40vw; }
+.topbar .staffdir { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; min-width: 0; max-width: 40vw; }
+.topbar .helplink { white-space: nowrap; }
+.topbar .stats { flex: none; }
 .topbar .stats { display: flex; gap: 14px; margin-left: auto; font-size: 13px; color: var(--muted); align-items: center; }
 .topbar .stats b { color: var(--ink); font-weight: 600; }
 .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; border: 1px solid var(--line); background: var(--card); color: var(--muted); }
@@ -164,6 +166,11 @@ body.stale .lobby { filter: saturate(0.6); }
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity 0.2s; pointer-events: none; max-width: 90vw; }
 .toast.show { opacity: 1; }
 
+@media (max-width: 700px) {
+  .topbar { flex-wrap: wrap; }
+  .topbar .staffdir { max-width: 100%; }
+  .floor.focus { height: auto; min-height: calc(100vh - 52px); }
+}
 @media (max-width: 480px) {
   .lobby { padding: 16px 16px 40px; }
   .cards { grid-template-columns: 1fr; }
@@ -459,3 +466,8 @@ details.about[open] summary { margin-bottom: 10px; }
 .topbar .helplink { font-size: 13px; color: var(--muted); text-decoration: none; }
 .topbar .helplink:hover { color: var(--ink); }
 @media (max-width: 600px) { .firstrun .row { grid-template-columns: 1fr; } }
+
+.fpanel .head .rolebig { color: var(--ink); font-size: 15px; font-weight: 600; }
+.fpanel .how { margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(74,64,32,.3); font-size: 13px; color: rgba(74,64,32,.8); }
+.firstrun .expand { font-size: 16px; }
+.office-side .how { font-size: 13px; line-height: 1.45; }

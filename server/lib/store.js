@@ -56,7 +56,7 @@ function createStore(cfg, { live = true, now = () => new Date(), sources = {} } 
       staff: {
         brand: cfg.brand, staffDir: cfg.staffDir, exists: dirExists(cfg.staffDir), count: snapshots.length,
         needsYou: snapshots.filter((s) => s.badges.includes('needsYou')).length,
-        cos: cos ? cos.id : null, warnings, readOnly: true
+        cos: cos ? cos.id : null, warnings, readOnly: true, settingsExist: cfg.settingsExist !== false
       },
       offices: snapshots,
       cos: cos ? snapshots.find((s) => s.id === cos.id) || null : null,

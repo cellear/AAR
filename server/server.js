@@ -241,11 +241,15 @@ function start() {
     const url = `http://localhost:${cfg.port}/`;
     const pad = ' '.repeat(cfg.brand.length);
     console.log(`${cfg.brand}  ${url}`);
-    console.log(`${pad}  settings: ${cfg.configPath}${cfg.written ? ' (new, written with defaults)' : ''}`);
-    console.log(`${pad}  staff:    ${cfg.staffDir}${process.env.AAR_STAFF_DIR ? ' (from AAR_STAFF_DIR for this run only)' : ''}`);
-    if (!reader.dirExists(cfg.staffDir)) {
+    if (!cfg.settingsExist && !process.env.AAR_STAFF_DIR) {
+      console.log(`${pad}  no settings yet (${cfg.configPath}). The page asks where the staff folder should go.`);
+    } else {
+      console.log(`${pad}  settings: ${cfg.configPath}${cfg.settingsExist ? '' : ' (not written yet)'}`);
+      console.log(`${pad}  staff:    ${cfg.staffDir}${process.env.AAR_STAFF_DIR ? ' (from AAR_STAFF_DIR for this run only)' : ''}`);
+    }
+    if (cfg.settingsExist && !reader.dirExists(cfg.staffDir)) {
       console.log(`${pad}  that folder does not exist yet. Nothing is created until you press "Create staff" on the page.`);
-    } else if (!reader.staffExists(cfg.staffDir)) {
+    } else if ((cfg.settingsExist || process.env.AAR_STAFF_DIR) && !reader.staffExists(cfg.staffDir)) {
       console.log(`${pad}  that folder holds no office yet; the page offers to create the Chief of Staff.`);
     }
     console.log(`${pad}  read-only: the app writes only when you create the staff, hire, or change the staff folder. "npm run reset" forgets the settings.`);

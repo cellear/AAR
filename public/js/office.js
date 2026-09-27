@@ -90,7 +90,11 @@
   function renderSide() {
     const files = office.files || [];
     const l = office.launch || {};
+    const how = office.session
+      ? `${esc(office.name)}'s session is running. <b>Open session</b> copies the command to reach it.`
+      : `Press <b>Open session</b> to copy a terminal command to the clipboard. Open a terminal, paste it, and Claude Code starts in this folder as ${esc(office.name)}, the ${esc(office.role || 'assistant')}. Say hello; the floor updates within seconds.`;
     $('#side').innerHTML = `
+      <div class="side how"><h3>Talking to ${esc(office.name)}</h3>${how}</div>
       <div class="side"><h3>Also in this folder</h3>${files.length ? `<ul>${files.map((f) => `<li class="${f.endsWith('/') ? 'dir' : ''}">${esc(f)}</li>`).join('')}</ul>` : '<span class="k">Nothing beyond AAR\'s own files.</span>'}</div>
       <div class="side"><h3>Launch settings</h3><dl>
         <dt class="k">model</dt><dd>${esc(l.model || '—')}</dd>

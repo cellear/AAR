@@ -66,16 +66,15 @@ function resolve(cfg) {
 function load() {
   const file = configPath();
   let raw = null;
-  let written = false;
+  let exists = true;
   try {
     raw = JSON.parse(fs.readFileSync(file, 'utf8'));
   } catch (err) {
     if (err.code !== 'ENOENT') throw new Error(`cannot read ${file}: ${err.message}`);
-    fs.writeFileSync(file, JSON.stringify(DEFAULTS, null, 2) + '\n');
-    written = true;
+    exists = false;   /* written only when the user creates a staff or picks a folder */
   }
   const cfg = resolve(normalise(raw));
-  cfg.written = written;
+  cfg.settingsExist = exists;
   return cfg;
 }
 

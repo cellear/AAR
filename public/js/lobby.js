@@ -119,8 +119,12 @@
       : `${esc(o.bubble.text)}<span class="src">${o.bubble.source === 'none' ? 'no status.md yet' : o.bubble.source === 'away' ? 'from their last session' : 'their last message'}</span>`;
     const session = o.session ? `${o.session.status} · ${o.session.kind} session` : 'no session';
     const where = [o.role, o.id].filter((x, i, a) => x && a.indexOf(x) === i).join(' · ');
-    return `<div class="fpanel note"><div class="head"><b>${esc(o.name)}</b><span>${esc(where)} · ${esc(session)} · last heard ${esc(relTime(o.lastHeard))}</span></div>${body}
-      <div class="actions"><a class="btn primary" href="/office/${encodeURIComponent(o.id)}">Open office</a><button class="btn launch" data-id="${esc(o.id)}">Open session</button>${o.cos ? '<a class="btn" href="/cos">Cross-office view</a>' : ''}${badges(o.badges)}</div></div>`;
+    const how = o.session
+      ? `${esc(o.name)}'s session is running (${esc(o.session.kind)}). Open session copies the command to reach it.`
+      : `To talk to ${esc(o.name)}: press <b>Open session</b>, which copies a command to the clipboard; open a terminal, paste it, and Claude Code starts in this office as ${esc(o.name)}.`;
+    return `<div class="fpanel note"><div class="head"><b>${esc(o.name)}</b><span class="rolebig">${esc(where)}</span><span>${esc(session)} · last heard ${esc(relTime(o.lastHeard))}</span></div>${body}
+      <div class="actions"><a class="btn primary" href="/office/${encodeURIComponent(o.id)}">Open office</a><button class="btn launch" data-id="${esc(o.id)}">Open session</button>${o.cos ? '<a class="btn" href="/cos">Cross-office view</a>' : ''}${badges(o.badges)}</div>
+      <div class="how">${how}</div></div>`;
   }
 
   function deadlinesPanel(o) {
@@ -223,14 +227,15 @@
   function howItWorks(brand) {
     return `
       <h2>How ${esc(brand)} works</h2>
-      <p><b>${esc(brand)} is a window, not a control panel.</b> It shows a staff of AI administrative assistants: who is awake, what each one is doing, and who needs you. It reads files and Claude Code's own session list. It never runs a session and never edits an assistant's files.</p>
+      <p class="expand"><b>${esc(brand)}</b> stands for <b>Administrative Assistant Robots</b>: a staff of AI assistants, one for each outside group you deal with, each with an office of their own.</p>
+      <p>This version is a window onto the staff. It shows who is awake, what each assistant is doing, and who needs you. It reads their files and Claude Code's session list, and it never edits an assistant's files. Talking to an assistant happens in a terminal; a later version will let you talk from here.</p>
       <ol class="steps">
-        <li><b>The staff folder.</b> One folder you choose, outside this app, holding one subfolder per office. Make it a git repository so cloud sessions can see it. A path with no spaces is safest, such as <code>~/aar-staff</code>.</li>
-        <li><b>An office</b> is a folder with an <code>aa.conf</code> in it. It holds the assistant's <code>README.md</code>, <code>briefing.md</code> (what they know now), <code>log.md</code> (one entry per session, never edited), <code>status.md</code> (three lines the floor shows) and <code>CLAUDE.md</code> (how they behave).</li>
-        <li><b>The Chief of Staff</b> is the first office, created for you on this screen. The others come from the <b>Hire</b> button.</li>
-        <li><b>Talking to an assistant</b> happens in a terminal. Press <b>Open session</b> on the floor, paste the command, and Claude Code starts in that office. The floor updates within seconds.</li>
+        <li><b>The staff folder.</b> One folder you choose, outside this app, with one subfolder per office. Make it a git repository so cloud sessions can see it. A path with no spaces is safest, such as <code>~/aar-staff</code>.</li>
+        <li><b>An office</b> is one assistant's folder: a handful of Markdown files that hold what they know, what they have done, and how they behave. The office page explains each file.</li>
+        <li><b>The Chief of Staff</b> is the first office, created for you on the next screen. The others come from the <b>Hire</b> button.</li>
+        <li><b>Talking to an assistant</b> happens in a terminal. From their office, copy the command ${esc(brand)} gives you, paste it into a terminal, and Claude Code starts there as that assistant. The floor updates within seconds.</li>
       </ol>
-      <div class="note">${esc(brand)} writes exactly three things: the staff folder when you create it here, a new office when you hire, and its own settings file (<code>aar.config.json</code> in the app folder) when you change the staff folder. <code>npm run reset</code> forgets the settings; it never touches a staff folder.</div>`;
+      <div class="note">${esc(brand)} writes exactly three things: the staff folder when you create it here, a new office when you hire, and its own settings file (<code>aar.config.json</code> in the app folder). <code>npm run reset</code> forgets the settings; it never touches a staff folder.</div>`;
   }
 
   let castOptions = null;
@@ -265,23 +270,23 @@
     if (box.dataset.ready) return;
     box.dataset.ready = '1';
     const s = state.staff;
-    box.innerHTML = howItWorks(s.brand) + `<div class="actions"><button class="primary" id="begin" type="button">Set up the staff</button></div>`;
+    box.innerHTML = howItWorks(s.brand) + `<div class="actions"><button class="primary" id="begin" type="button">Choose a folder and create the Chief of Staff</button></div>`;
     $('#begin').addEventListener('click', async () => {
       const opts = await loadCast();
       box.innerHTML = `
-        <h2>Create the staff</h2>
-        <p>One folder, one Chief of Staff. You can rename either later by editing the files.</p>
+        <h2>Create the Chief of Staff</h2>
+        <p>First, where the staff folder goes. Then the first assistant: the Chief of Staff, who coordinates the others. You can rename either later by editing the files.</p>
         <form id="setup">
-          <label>Staff folder<input name="staffDir" value="${esc(s.staffDir)}" autocomplete="off"><div class="path-note ${s.exists ? '' : 'new'}" id="pathnote">${s.exists ? 'This folder exists and holds no office yet.' : 'This folder does not exist yet. It will be created.'}</div></label>
+          <label>Staff folder<input name="staffDir" value="${esc(s.staffDir)}" autocomplete="off"><div class="path-note ${s.exists ? '' : 'new'}" id="pathnote">${s.settingsExist ? (s.exists ? 'This folder exists and holds no office yet.' : 'This folder does not exist yet. It will be created.') : 'A suggestion. Change it to any folder outside this app; it will be created if it does not exist.'}</div></label>
           <label>The Chief of Staff's name<input name="name" placeholder="A first name; it goes into aa.conf, README.md and CLAUDE.md"></label>
           ${pickerHTML(opts, '#5b7c99')}
-          <div class="actions"><button class="primary" type="submit">Create staff</button><button class="secondary" type="button" id="back">Back</button><span class="err"></span></div>
+          <div class="actions"><button class="primary" type="submit">Create the Chief of Staff</button><button class="secondary" type="button" id="back">Back</button><span class="err"></span></div>
         </form>
         <div class="result"></div>`;
       const form = $('#setup');
       wirePicker(form);
       $('#back').addEventListener('click', () => { delete box.dataset.ready; renderFirstRun(); });
-      form.staffDir.addEventListener('input', () => { $('#pathnote').textContent = 'Press Create staff; the page will say whether the folder was new.'; $('#pathnote').className = 'path-note'; });
+      form.staffDir.addEventListener('input', () => { $('#pathnote').textContent = 'The folder will be created if it does not exist; the next screen says which happened.'; $('#pathnote').className = 'path-note'; });
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(form).entries());
@@ -293,7 +298,8 @@
           openOverlay(`<h2>${esc(r.name)} has an office</h2>
             <p>${r.createdFolder ? `The folder <code>${esc(r.staffDir)}</code> did not exist, so it was created.` : `<code>${esc(r.staffDir)}</code> already existed; the office was added to it.`} It holds one office, <code>${esc(r.office)}</code>, and the app now points at it (remembered in <code>aar.config.json</code>).</p>
             <p>To keep the staff in git, run this in a terminal:</p><pre>${esc(r.gitInitCommand)}</pre>
-            <p>Next: click ${esc(r.name)} on the floor, press <b>Open session</b>, paste the command into a terminal, and say hello. Hire the rest of the staff with the <b>Hire</b> button.</p>
+            <p>Click the button below to go to the <b>floor</b>, where you will see the Chief of Staff you just created. From there you can do two things:</p>
+            <ol><li>Click ${esc(r.name)} to open their office, which explains how to start talking to them.</li><li>Create more staff members with the <b>Hire</b> button.</li></ol>
             <div class="actions"><button class="primary" type="button" id="tofloor">Go to the floor</button></div>`);
           $('#tofloor').addEventListener('click', closeOverlay);
         } catch (ex) {
