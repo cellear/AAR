@@ -120,6 +120,21 @@ test('server: first run, setup, snapshots, method and path rules', async (t) => 
     assert.equal(r.status, 404, p);
   }
 
+  /* The hire wizard: the other allowed POST. */
+  r = await call(base, '/api/hire/options');
+  assert.equal(r.status, 200);
+  assert.equal(r.body.nextOrder, 1);
+  r = await call(base, '/api/hire', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'Holly', role: 'Headhunter', folder: 'Prospects', avatar: 'own' }) });
+  assert.equal(r.status, 201, JSON.stringify(r.body));
+  r = await call(base, '/api/hire', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'Holly', role: 'Headhunter', folder: 'Prospects' }) });
+  assert.equal(r.status, 409);
+  r = await call(base, '/api/hire', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'X', role: 'Y', folder: '../escape' }) });
+  assert.equal(r.status, 400);
+  r = await call(base, '/api/offices');
+  assert.deepEqual(r.body.offices.map((o) => o.id), ['Chief of Staff', 'Prospects']);
+  r = await call(base, '/hire');
+  assert.equal(r.status, 200);
+
   r = await call(base, '/');
   assert.equal(r.status, 200);
   assert.match(r.headers.get('content-type'), /text\/html/);

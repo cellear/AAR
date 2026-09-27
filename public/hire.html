@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hire</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%235b7c99%27/%3E%3Ccircle cx=%2716%27 cy=%2711%27 r=%275%27 fill=%27%23fffdf8%27/%3E%3Cpath d=%27M7 27c0-6 4-9 9-9s9 3 9 9z%27 fill=%27%23fffdf8%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="office-head">
+  <a class="back" href="/">← Lobby</a>
+  <h1>Hire an assistant</h1>
+</header>
+<main class="hire-body">
+  <form class="hire" id="hire">
+    <h2>A new office</h2>
+    <p class="lead">One assistant per outside group you deal with. The wizard writes the office folder; you start the first session from the lobby.</p>
+    <div class="row">
+      <label>Assistant's name<input type="text" name="name" required placeholder="Holly" autocomplete="off"></label>
+      <label>Role title<input type="text" name="role" required placeholder="Headhunter" autocomplete="off"></label>
+    </div>
+    <label>Office folder name<span class="hint">a folder under the staff folder; the job, not the person</span><input type="text" name="folder" required placeholder="Prospects" autocomplete="off"></label>
+    <label>What this office covers<span class="hint">a paragraph; it becomes the assistant's brief</span><textarea name="covers" placeholder="Potential employers and potential clients: the job hunt, from first contact to offer."></textarea></label>
+    <div class="row">
+      <label>Model<select name="model" id="model"></select></label>
+      <label>Accent colour<input type="text" name="accent" id="accent" value="#5b7c99" pattern="#[0-9a-fA-F]{6}"><div class="swatches" id="swatches"></div></label>
+    </div>
+    <label>Standee<span class="hint">a starter picture, or supply your own avatar.png later</span></label>
+    <div class="cast" id="cast"></div>
+    <div class="actions">
+      <button class="primary" type="submit">Create office</button>
+      <span class="err" id="err"></span>
+    </div>
+    <div class="done" id="done" style="display:none"></div>
+  </form>
+</main>
+<script src="/js/render.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/hire.js"></script>
+</body>
+</html>

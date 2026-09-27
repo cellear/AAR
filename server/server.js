@@ -16,11 +16,12 @@ const reader = require('./lib/reader');
 const state = require('./lib/state');
 const setup = require('./lib/setup');
 const launch = require('./lib/launch');
+const hire = require('./lib/hire');
 const { createStore } = require('./lib/store');
 
 const PUBLIC = path.join(loadConfig.APP_ROOT, 'public');
 const CAST = path.join(loadConfig.APP_ROOT, 'assets', 'avatars');
-const POST_ROUTES = new Set(['/api/setup']);
+const POST_ROUTES = new Set(['/api/setup', '/api/hire']);
 const MAX_BODY = 64 * 1024;
 
 const MIME = {
@@ -127,6 +128,15 @@ function createHandler(cfg, store) {
         return json(res, err.status || 500, { error: err.message });
       }
     }
+    if (pathname === '/api/hire') {
+      try {
+        const result = hire.hire(body, cfg);
+        store.rebuild({ full: true });
+        return json(res, 201, result);
+      } catch (err) {
+        return json(res, err.status || 500, { error: err.message });
+      }
+    }
     return json(res, 404, { error: 'not found' });
   }
 
@@ -165,6 +175,7 @@ function createHandler(cfg, store) {
         const office = offices().offices.find((o) => o.id === id);
         return office ? json(res, 200, { office: id, ...launch.launchCommand(office) }) : json(res, 404, { error: 'no such office' });
       }
+      if (p === '/api/hire/options') return json(res, 200, hire.options(cfg));
       if (p === '/api/cos') {
         const all = offices();
         if (!all.cos) return json(res, 404, { error: 'no office has cos=yes', warnings: all.staff.warnings });

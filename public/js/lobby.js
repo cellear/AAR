@@ -27,6 +27,7 @@
       `<span title="last poll">polled ${esc(clock(state.polledAt))}</span>` + stale +
       '<span class="pill" title="AAR reads files; the only write is hiring">read-only</span>';
     document.body.classList.toggle('stale', !!state.stale || !state.connected);
+    $('#hirebtn').style.display = s.count > 0 ? '' : 'none';
   }
 
   /* ---------- cards ---------- */

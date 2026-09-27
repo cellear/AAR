@@ -294,3 +294,32 @@ details.about[open] summary { margin-bottom: 10px; }
 .sheet td, .sheet th { border: 1px solid #ccc; padding: 2px 8px; }
 .sheet hr { border: 0; border-top: 1px dashed #bbb; margin: 14px 0; }
 .sheet li:has(> input[type=checkbox]) { list-style: none; margin-left: -18px; }
+
+/* ---------- hire wizard ---------- */
+.hire-body { max-width: 760px; margin: 0 auto; padding: 24px 20px 60px; }
+.hire { background: var(--card); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); padding: 26px 30px; border-top: 5px solid var(--accent); }
+.hire h2 { margin: 0 0 4px; font-size: 22px; }
+.hire .lead { color: var(--muted); margin: 0 0 18px; font-size: 14px; }
+.hire label { display: block; margin-top: 16px; font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: 0.02em; }
+.hire label .hint { font-weight: 400; margin-left: 6px; }
+.hire input[type=text], .hire textarea, .hire select { width: 100%; padding: 9px 11px; font: inherit; border: 1px solid var(--line); border-radius: 6px; margin-top: 5px; background: #fff; color: var(--ink); }
+.hire textarea { min-height: 96px; resize: vertical; }
+.hire .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.hire .swatches { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.hire .swatch { width: 30px; height: 30px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12); }
+.hire .swatch.on { border-color: var(--ink); }
+.hire .cast { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 10px; margin-top: 8px; }
+.hire .cast label { margin: 0; cursor: pointer; text-align: center; font-weight: 400; color: var(--ink); font-size: 12px; border: 2px solid transparent; border-radius: 8px; padding: 6px 4px 4px; background: var(--paper); }
+.hire .cast label.on { border-color: var(--accent); background: #fff; }
+.hire .cast label input { display: none; }
+.hire .cast .fig { height: 96px; display: flex; align-items: flex-end; justify-content: center; }
+.hire .cast img, .hire .cast svg { max-height: 96px; max-width: 100%; object-fit: contain; }
+.hire .cast svg { width: 48px; height: 90px; }
+.hire .actions { display: flex; gap: 12px; align-items: center; margin-top: 24px; }
+.hire button.primary { padding: 10px 20px; background: var(--accent); color: #fff; border: 0; border-radius: 6px; cursor: pointer; font-weight: 600; }
+.hire button.primary:disabled { opacity: 0.5; cursor: default; }
+.hire .err { color: var(--needs); font-size: 14px; }
+.hire .done { margin-top: 20px; padding: 16px; background: var(--note); color: var(--note-ink); border-radius: 3px 10px 10px 10px; }
+.hire .done pre { white-space: pre-wrap; word-break: break-all; background: rgba(255,255,255,0.6); padding: 8px; border-radius: 6px; font-size: 13px; }
+.hire .done ul { margin: 6px 0; padding-left: 18px; font-size: 14px; }
+.topbar .hirebtn { padding: 5px 12px; border-radius: 6px; background: var(--accent); color: #fff; text-decoration: none; font-size: 13px; }

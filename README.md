@@ -22,6 +22,11 @@ then start a session in the new folder:
 
     cd ~/aar-staff/"Chief of Staff" && claude --model opus --name "Casey - Chief of Staff"
 
+To see the whole thing before hiring anyone for real, seed a sample staff:
+
+    npm run demo -- ~/aar-demo-staff
+    AAR_STAFF_DIR=~/aar-demo-staff npm start
+
 Environment overrides, mostly for tests: `AAR_CONFIG` (path to the config
 file), `AAR_STAFF_DIR`, `AAR_PORT`, `AAR_NO_OPEN=1` (do not open the browser).
 
@@ -47,7 +52,10 @@ staff's, so `STAFF/` and `staff/` inside the checkout are gitignored as a
 safety net.
 
 Inside the staff folder every office is a subfolder with an `aa.conf`. The
-hire wizard creates offices; you can also copy one and edit `aa.conf`.
+**Hire** button in the lobby creates offices: it writes the folder from
+`template/office/` with the assistant's name, role and brief filled in, and an
+`avatar-prompts.md` with prompts for a standee and an office scene. You can
+also copy an office and edit `aa.conf` by hand.
 
 ## What AAR reads
 
@@ -71,15 +79,19 @@ In each office AAR reads only these files and lists the rest by name:
     GET  /api/offices/<folder>   one snapshot
     GET  /api/cos                the Chief of Staff's cross-office roll-up
     GET  /api/launch/<folder>    the copy-to-terminal command for the office
+    GET  /api/hire/options       models, starter cast, colours, next order number
+    POST /api/hire               the hire wizard: writes one new office folder
     GET  /api/events             SSE: an init frame, then office / frontDesk / git / staff / stale frames
     GET  /avatars/<folder>/avatar.png, /avatars/<folder>/office.png, /avatars/cast/<file>
     POST /api/setup              first run only: create the staff folder
 
-Every other method is answered 405 before any path is resolved.
+Every other method is answered 405 before any path is resolved. The two POSTs
+are the app's only writes, and neither ever overwrites an existing folder.
 
 ## Status
 
-Phases 1 to 3 of the plan: the reader, the JSON API, the live sources
+Phases 1 to 6 of the plan: the reader, the JSON API, the live sources
 (`claude agents --json` polling, session attribution, transcript tailing, git
-status, the file watcher and the event stream), and the lobby. The office
-view, the Chief of Staff view and the hire wizard are the phases that follow.
+status, the file watcher and the event stream), the lobby, the office view,
+the Chief of Staff view with the printable morning sheet, and the hire wizard.
+Phase 7 (`start.sh`, tuning, polish) is what remains of the MVP.
