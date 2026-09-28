@@ -10,7 +10,8 @@
     "test": "node --test \"test/*.test.js\"",
     "demo": "node server/demo.js",
     "reset": "node server/reset.js",
-    "test:browser": "node --test \"test/browser/*.test.js\""
+    "test:browser": "node --test \"test/browser/*.test.js\"",
+    "avatar": "node server/avatar.js"
   },
   "engines": {
     "node": ">=22"
@@ -20,6 +21,7 @@
     "playwright-core": "^1.50.0"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.3.283"
+    "@anthropic-ai/claude-agent-sdk": "^0.3.283",
+    "jimp": "^1.6.1"
   }
 }

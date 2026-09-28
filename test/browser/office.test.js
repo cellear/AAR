@@ -10,7 +10,7 @@ test('office page: sections, people pictures, deadlines, checkboxes, log, sideba
   if (!a) return;
   const office = a.office('Prospects');
   fs.mkdirSync(path.join(office, 'people'));
-  fs.copyFileSync(path.join(ROOT, 'assets', 'avatars', 'quinn.png'), path.join(office, 'people', 'ada-lovelace.png'));
+  fs.copyFileSync(path.join(ROOT, 'assets', 'avatars', 'cast-07.png'), path.join(office, 'people', 'ada-lovelace.png'));
   fs.writeFileSync(path.join(office, 'people.md'), 'not read by AAR');
   const { page } = a;
   await a.goto('/office/Prospects');

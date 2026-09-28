@@ -33,15 +33,15 @@ try {
   process.exit(1);
 }
 const offices = [
-  { name: 'Holly', role: 'Headhunter', folder: 'Prospects', model: 'sonnet', accent: '#c2603f', avatar: 'stacey.png', covers: 'Potential employers and potential clients: the job hunt, from first contact to offer.' },
-  { name: 'Maya', role: 'Marketing', folder: 'Marketing', model: 'sonnet', accent: '#8a5a9e', avatar: 'maya.png', covers: 'Public presence: the blog, the websites, social media. Builds and deploys the sites.' },
-  { name: 'Marissa', role: 'Events', folder: 'BADCamp', model: 'sonnet', accent: '#2e7d6b', avatar: 'priya.png', covers: 'BADCamp and SFDUG, including the treasury.' },
-  { name: 'Walter', role: 'Biographer', folder: 'Biography', model: 'sonnet', accent: '#7a6a3a', avatar: 'lila.png', covers: 'The record of the user\'s life and career. Single source of truth for life facts.' }
+  { name: 'Holly', role: 'Headhunter', folder: 'Prospects', model: 'sonnet', accent: '#c2603f', avatar: 'cast-09.png', covers: 'Potential employers and potential clients: the job hunt, from first contact to offer.' },
+  { name: 'Maya', role: 'Marketing', folder: 'Marketing', model: 'sonnet', accent: '#8a5a9e', avatar: 'cast-05.png', covers: 'Public presence: the blog, the websites, social media. Builds and deploys the sites.' },
+  { name: 'Marissa', role: 'Events', folder: 'BADCamp', model: 'sonnet', accent: '#2e7d6b', avatar: 'cast-06.png', covers: 'BADCamp and SFDUG, including the treasury.' },
+  { name: 'Walter', role: 'Biographer', folder: 'Biography', model: 'sonnet', accent: '#7a6a3a', avatar: 'cast-04.png', covers: 'The record of the user\'s life and career. Single source of truth for life facts.' }
 ];
 for (const o of offices) hire.hire(o, cfg, { now });
 
 write('Chief of Staff', 'status.md', `Now: Writing tomorrow's morning sheet from every office's status.\nNeed from you:\nNext: Close out the day at six.\n`);
-write('Chief of Staff', 'avatar.png', fs.readFileSync(path.join(config.APP_ROOT, 'assets', 'avatars', 'eric.png')));
+write('Chief of Staff', 'avatar.png', fs.readFileSync(path.join(config.APP_ROOT, 'assets', 'avatars', 'cast-03.png')));
 fs.mkdirSync(path.join(staffDir, 'Chief of Staff', 'mornings'), { recursive: true });
 write('Chief of Staff', `mornings/${d(0)}.md`, `# ${now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
 

@@ -520,3 +520,9 @@ details.about[open] summary { margin-bottom: 10px; }
 .msg.pending .body .md::after { content: "▍"; color: var(--muted); animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 .office-head .askpin { background: var(--needs); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: .03em; }
+/* face pictures on the floor: the face shows on the everyone view, the full
+   figure when focused or receded */
+.person .fig img.full { display: none; }
+.person .fig img.face { display: block; }
+.floor.focus .person .fig img.full { display: block; }
+.floor.focus .person .fig img.face { display: none; }

@@ -44,6 +44,17 @@ Build-level guesses on that branch, standing unless overturned:
 - `settingSources` is user, project, local, so an AAR-started session reads the office's `CLAUDE.md`, hooks and connectors like a terminal session would.
 - The SDK's bundled Claude Code is used unless `AAR_CLAUDE_BIN` points at the installed one.
 - No budget cap yet; `talk.maxBudgetUsd` is honoured if set.
+## Rulings from Luke: the cast (2026-09-28)
+
+- The starter cast suggests no names or roles. Files are `cast-NN.png`; the pickers show pictures only. Props stay, since a megaphone reads as a role by sight without the file asserting one.
+- Luke supplies the pictures, generated in the AMS style on white; AAR cuts them out (`npm run avatar`). Fifteen professional renders (2026-09-28) replaced the twelve casual figures; each comes as a card with a waist-up crop, kept as `cast-NN-face.png` and shown where figures are small (everyone view, pickers), since the full standee reads too small there. Luke may trim the cast later by deleting files.
+
+Build-level guesses:
+- The nine AMS standees are `cast-01` to `cast-09` in their old alphabetical order; the old names keep working through an alias map and are written back as the numbered file.
+- Background removal is a flood fill from the edges with a per-channel tolerance of 28, so enclosed white (a notebook, a shirt) survives; a one-pixel feather softens the cut. The soft shadow under the feet is kept, as the AMS standees have one.
+- A caption under the feet is found as short, narrow ink bands below the tallest band and cropped; the command turns this on by default.
+- Sheets of figures split at full-height background gaps; overlapping crowds do not split.
+- `jimp` (pure JavaScript) is the second runtime dependency, chosen over `sharp` to avoid a native binary per platform.
 
 ## Assumptions still standing
 

@@ -35,6 +35,13 @@ To see the whole thing before hiring anyone for real, seed a sample staff:
     npm run demo -- ~/aar-demo-staff
     AAR_STAFF_DIR=~/aar-demo-staff npm start
 
+To turn a generated picture of an assistant into a cast standee (transparent,
+sized to match, caption cropped):
+
+    npm run avatar -- picture.png
+
+See `docs/conventions.md`, "Cutting out a generated picture".
+
 To forget this machine's settings and start over as if for the first time:
 
     npm run reset

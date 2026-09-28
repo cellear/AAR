@@ -8,6 +8,7 @@ const path = require('path');
 const config = require('./config');
 const staff = require('./staff');
 const template = require('./template');
+const { castFile } = require('./cast');
 const { localISODate } = require('./dates');
 
 const DEFAULT_NAME = 'Casey';
@@ -36,8 +37,9 @@ function validAccent(accent) {
 function validAvatar(avatar, cfg) {
   const a = String(avatar || '').trim();
   if (!a || a === 'own') return '';
-  if (!/^[A-Za-z0-9._-]+\.png$/.test(a) || !fs.existsSync(path.join(cfg.appRoot, 'assets', 'avatars', a))) throw new SetupError(400, 'unknown starter avatar');
-  return a;
+  const file = castFile(a);
+  if (!/^[A-Za-z0-9._-]+\.png$/.test(file) || !fs.existsSync(path.join(cfg.appRoot, 'assets', 'avatars', file))) throw new SetupError(400, 'unknown starter avatar');
+  return file;
 }
 
 function createStaff({ cfg, staffDir, name, accent, avatar, now = new Date(), persist = true }) {

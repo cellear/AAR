@@ -30,7 +30,7 @@ test('first run: splash, form, folder created, result overlay, floor', async (t)
   const conf = fs.readFileSync(path.join(a.staffDir, 'Chief of Staff', 'aa.conf'), 'utf8');
   assert.match(conf, /name=Alfred - Chief of Staff/);
   assert.match(conf, /accent=#2e7d6b/);
-  assert.match(conf, /avatar=eric\.png/);
+  assert.match(conf, /avatar=cast-03\.png/);
   const settings = JSON.parse(fs.readFileSync(a.env.AAR_CONFIG, 'utf8'));
   assert.equal(settings.staffDir, a.staffDir);
   await page.click('#tofloor');

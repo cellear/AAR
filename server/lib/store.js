@@ -14,7 +14,7 @@ const transcripts = require('./transcripts');
 const git = require('./git');
 const { createWatcher } = require('./watch');
 const { createHub } = require('./sse');
-const { dirExists } = require('./reader');
+const { dirExists, castFaceSet } = require('./reader');
 
 /* `sources` lets tests replace the CLI and git with fixtures. */
 /* `talk` is the talk layer (server/lib/talk.js); its sessions join the live
@@ -37,6 +37,7 @@ function createStore(cfg, { live = true, now = () => new Date(), sources = {}, t
 
   function build() {
     const at = now();
+    const castFaces = castFaceSet(cfg.appRoot);
     const offices = staff.discoverOffices(cfg.staffDir);
     const { cos, warnings } = staff.chiefOfStaff(offices);
     const all = talk ? liveSessions.concat(talk.liveSessions()) : liveSessions;
@@ -46,6 +47,7 @@ function createStore(cfg, { live = true, now = () => new Date(), sources = {}, t
     for (const o of offices) {
       try {
         const files = office.readOffice(o.folder, { cos: cos !== null && cos.id === o.id });
+        files.castFaces = castFaces;
         const list = byOffice[o.id] || [];
         const transcript = live ? reader.summarise(o.folder, list[0] || null) : null;
         snapshots.push(state.buildOfficeSnapshot({
