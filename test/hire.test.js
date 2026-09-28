@@ -14,7 +14,7 @@ function cfg() {
   setup.createStaff({ cfg: c, name: 'Casey', persist: false });
   return c;
 }
-const form = (over = {}) => ({ name: 'Holly', role: 'Headhunter', folder: 'Prospects', covers: 'The job hunt.', model: 'sonnet', accent: '#C2603F', avatar: 'stacey.png', ...over });
+const form = (over = {}) => ({ name: 'Holly', role: 'Headhunter', folder: 'Prospects', covers: 'The job hunt.', model: 'sonnet', accent: '#C2603F', avatar: 'cast-09.png', ...over });
 
 test('hire renders every template file with placeholders filled and writes the prompts', () => {
   const c = cfg();
@@ -29,7 +29,7 @@ test('hire renders every template file with placeholders filled and writes the p
   assert.equal(conf.role, 'Headhunter');
   assert.equal(conf.model, 'sonnet');
   assert.equal(conf.accent, '#c2603f');
-  assert.equal(conf.avatar, 'stacey.png');
+  assert.equal(conf.avatar, 'cast-09.png');
   assert.equal(conf.order, 1);
   assert.equal(conf.cos, false);
   const prompts = fs.readFileSync(path.join(r.folder, 'avatar-prompts.md'), 'utf8');
@@ -72,7 +72,11 @@ test('hire defaults: model, accent, own avatar, explicit order', () => {
 test('options lists the starter cast and taken folders', () => {
   const c = cfg();
   const o = hire.options(c);
-  assert.ok(o.cast.some((x) => x.file === 'eric.png'));
+  assert.ok(o.cast.some((x) => x.file === 'cast-03.png'));
+  assert.ok(o.cast.length >= 16);
+  assert.ok(o.cast.every((x) => x.label === ''), 'the cast carries no names');
+  const r = hire.hire(form({ folder: 'Alias', avatar: 'stacey.png' }), c);
+  assert.equal(staff.parseConf(fs.readFileSync(path.join(r.folder, 'aa.conf'), 'utf8')).avatar, 'cast-09.png', 'old names are accepted and written as the numbered file');
   assert.deepEqual(o.taken, ['Chief of Staff']);
   assert.deepEqual(o.models, c.models);
 });

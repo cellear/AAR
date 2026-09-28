@@ -10,7 +10,7 @@
 
   function renderCast() {
     const own = `<label class="on"><input type="radio" name="avatar" value="own" checked><div class="fig">${silhouette($('#accent').value)}</div>I'll supply my own</label>`;
-    $('#cast').innerHTML = own + opts.cast.map((c) => `<label><input type="radio" name="avatar" value="${esc(c.file)}"><div class="fig"><img src="${esc(c.url)}" alt=""></div>${esc(c.label)}</label>`).join('');
+    $('#cast').innerHTML = own + opts.cast.map((c) => `<label><input type="radio" name="avatar" value="${esc(c.file)}"><div class="fig"><img src="${esc(c.url)}" alt=""></div></label>`).join('');
     $('#cast').addEventListener('change', () => {
       document.querySelectorAll('#cast label').forEach((l) => l.classList.toggle('on', l.querySelector('input').checked));
     });

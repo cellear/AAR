@@ -35,7 +35,7 @@ Roster keys, read by AAR only:
 | Key | Meaning |
 |---|---|
 | `role` | The job title shown under the name. Defaults to the part of `name` after ` - `. |
-| `avatar` | A starter-cast file name (`eric.png`, `maya.png`, …). Ignored when the office has its own `avatar.png`. Empty means a neutral silhouette. |
+| `avatar` | A starter-cast file name (`cast-01.png` … ). The cast is numbered, not named, so it suggests no name or role. Ignored when the office has its own `avatar.png`. Empty means a neutral silhouette. The nine original names (`eric.png`, `maya.png`, …) still work and are written back as the numbered file. |
 | `accent` | A hex colour, `#5b7c99`, used for the office's edges and panels. |
 | `order` | An integer. Offices with one sort by it, after the Chief of Staff; the rest follow alphabetically by name. |
 | `cos` | `yes` on exactly one office: the Chief of Staff, first on the floor, with the cross-office view. |
@@ -118,6 +118,22 @@ this page. Everything outside the block is yours.
 
 `avatar-prompts.md`, written by the wizard, holds style-locked prompts for
 the first two so new pictures match the starter cast.
+
+### Cutting out a generated picture
+
+A generated standee usually comes on a white or flat background, at any
+size, sometimes with a name and role printed under the feet. The avatar
+command turns it into a cast picture: transparent, 336 px tall, at most 260
+wide, caption cropped, matching the rest of the cast.
+
+    npm run avatar -- picture.png                 into assets/avatars/ as the next cast-NN.png
+    npm run avatar -- --to ~/aar-staff/Prospects --name avatar picture.png
+    npm run avatar -- --check picture.png         previews only, into ./avatar-previews/
+
+`--split` cuts a sheet of figures standing side by side into one picture
+each; `--no-caption` skips the caption crop; `--tolerance <n>` widens or
+narrows what counts as background (default 28 of 255); `--force` overwrites.
+It never overwrites otherwise. PNG and JPEG in; PNG out.
 
 ## `mornings/` (Chief of Staff only)
 

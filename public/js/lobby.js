@@ -248,7 +248,7 @@
   function pickerHTML(opts, accent) {
     const swatches = opts.accents.map((a) => `<span class="swatch ${a === accent ? 'on' : ''}" data-accent="${esc(a)}" style="background:${esc(a)}"></span>`).join('');
     const own = `<label class="on"><input type="radio" name="avatar" value="own" checked><div class="fig">${silhouette(accent)}</div>Supply my own</label>`;
-    const cast = opts.cast.map((c) => `<label><input type="radio" name="avatar" value="${esc(c.file)}"><div class="fig"><img src="${esc(c.url)}" alt=""></div>${esc(c.label)}</label>`).join('');
+    const cast = opts.cast.map((c) => `<label><input type="radio" name="avatar" value="${esc(c.file)}"><div class="fig"><img src="${esc(c.url)}" alt=""></div></label>`).join('');
     return `<label>Accent colour<input name="accent" value="${esc(accent)}" pattern="#[0-9a-fA-F]{6}"><div class="swatches">${swatches}</div></label>
       <label>Standee<span class="path-note"> a starter picture, or drop your own avatar.png into the office later</span></label><div class="cast">${own}${cast}</div>`;
   }

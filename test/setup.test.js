@@ -58,10 +58,10 @@ test('createStaff can target a folder that does not exist yet and says so', () =
 
 test('createStaff writes the chosen accent and starter avatar, and rejects bad ones', () => {
   const c = cfg();
-  setup.createStaff({ cfg: c, name: 'Alfred', accent: '#2E7D6B', avatar: 'eric.png', persist: false });
+  setup.createStaff({ cfg: c, name: 'Alfred', accent: '#2E7D6B', avatar: 'eric.png', persist: false });   /* an old name: resolved to the numbered file */
   const conf = staff.parseConf(fs.readFileSync(path.join(c.staffDir, 'Chief of Staff', 'aa.conf'), 'utf8'));
   assert.equal(conf.accent, '#2e7d6b');
-  assert.equal(conf.avatar, 'eric.png');
+  assert.equal(conf.avatar, 'cast-03.png');
   const c2 = cfg();
   assert.throws(() => setup.createStaff({ cfg: c2, name: 'A', avatar: '../x.png', persist: false }), (e) => e.status === 400);
   assert.throws(() => setup.createStaff({ cfg: c2, name: 'A', accent: 'red', persist: false }), (e) => e.status === 400);

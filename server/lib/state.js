@@ -8,6 +8,7 @@
 const md = require('./markdown');
 const { parseStatus } = require('./status');
 const { localISODate, addDays } = require('./dates');
+const { castFile } = require('./cast');
 
 const NOTHING_YET = 'Nothing yet.';
 const MAX_BUBBLE = 160;
@@ -86,7 +87,7 @@ function briefingFor(text, now) {
 
 function avatarFor(office, files) {
   if (files.images.avatar) return { source: 'office', url: `/avatars/${encodeURIComponent(office.id)}/avatar.png` };
-  if (office.conf.avatar) return { source: 'cast', url: `/avatars/cast/${encodeURIComponent(office.conf.avatar)}` };
+  if (office.conf.avatar) return { source: 'cast', url: `/avatars/cast/${encodeURIComponent(castFile(office.conf.avatar))}` };
   return { source: 'none', url: null };
 }
 

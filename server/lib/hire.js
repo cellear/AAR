@@ -29,13 +29,16 @@ function propFor(role, covers) {
   return 'a clipboard';
 }
 
-/* Starter cast: every PNG in assets/avatars, by file name. */
+/* Starter cast: every PNG in assets/avatars. Files are numbered, not named:
+   the cast suggests no names or roles, only pictures. */
 function castList(appRoot) {
   const dir = path.join(appRoot, 'assets', 'avatars');
   let entries;
   try { entries = fs.readdirSync(dir); } catch { return []; }
-  return entries.filter((f) => /\.png$/i.test(f)).sort().map((file) => ({ file, url: `/avatars/cast/${encodeURIComponent(file)}`, label: file.replace(/\.png$/i, '').replace(/[-_]+/g, ' ') }));
+  return entries.filter((f) => /\.png$/i.test(f)).sort().map((file) => ({ file, url: `/avatars/cast/${encodeURIComponent(file)}`, label: '' }));
 }
+
+const { castFile, CAST_ALIASES } = require('./cast');
 
 function nextOrder(offices) {
   let max = 0;
@@ -75,9 +78,9 @@ function validate(form, cfg) {
   if (!cfg.models.includes(model)) throw new HireError(400, `unknown model "${model}"; choose one of ${cfg.models.join(', ')}`);
   if (accent && !/^#[0-9a-f]{6}$/i.test(accent)) throw new HireError(400, 'the accent must be a hex colour like #5b7c99');
   if (!accent) accent = '#5b7c99';
-  if (avatar && avatar !== 'own' && !castList(cfg.appRoot).some((c) => c.file === avatar)) throw new HireError(400, 'unknown starter avatar');
+  if (avatar && avatar !== 'own' && !castList(cfg.appRoot).some((c) => c.file === castFile(avatar))) throw new HireError(400, 'unknown starter avatar');
   const order = Number.isFinite(Number(form.order)) && form.order !== '' && form.order !== null && form.order !== undefined ? Number(form.order) : null;
-  return { name, folder, role, covers, model, accent: accent.toLowerCase(), avatar: avatar === 'own' ? '' : avatar, order };
+  return { name, folder, role, covers, model, accent: accent.toLowerCase(), avatar: avatar === 'own' ? '' : castFile(avatar), order };
 }
 
 function hire(form, cfg, { now = new Date() } = {}) {
@@ -99,4 +102,4 @@ function hire(form, cfg, { now = new Date() } = {}) {
   return { id: f.folder, folder: dest, name: f.name, role: f.role, order, files: fs.readdirSync(dest).sort() };
 }
 
-module.exports = { HireError, validate, hire, options, castList, nextOrder, propFor };
+module.exports = { HireError, validate, hire, options, castList, castFile, CAST_ALIASES, nextOrder, propFor };

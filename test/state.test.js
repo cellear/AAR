@@ -69,7 +69,8 @@ test('snapshot carries identity, avatar choice, briefing sections and log', () =
   assert.equal(s.log[0].date, '2026-09-20');
   assert.deepEqual(s.files, ['people.md']);
   assert.equal(s.status, null);
-  assert.deepEqual(snap({ office: office({ avatar: 'lila.png' }) }).avatar, { source: 'cast', url: '/avatars/cast/lila.png' });
+  assert.deepEqual(snap({ office: office({ avatar: 'cast-04.png' }) }).avatar, { source: 'cast', url: '/avatars/cast/cast-04.png' });
+  assert.deepEqual(snap({ office: office({ avatar: 'lila.png' }) }).avatar, { source: 'cast', url: '/avatars/cast/cast-04.png' }, 'an old name resolves through the alias map');
   assert.deepEqual(snap({ files: files({ images: { avatar: true, office: true } }) }).avatar, { source: 'office', url: '/avatars/Prospects/avatar.png' });
   assert.equal(snap({ files: files({ images: { avatar: false, office: true } }) }).officeImage, '/avatars/Prospects/office.png');
   assert.equal(snap({ files: files({ briefing: null, log: null }) }).briefing, null);
