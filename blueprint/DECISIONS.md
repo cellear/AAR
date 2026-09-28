@@ -27,7 +27,7 @@ These came from Luke directly and are not up for re-guessing.
 ## Rulings from Luke: the cast (2026-09-28)
 
 - The starter cast suggests no names or roles. Files are `cast-NN.png`; the pickers show pictures only. Props stay, since a megaphone reads as a role by sight without the file asserting one.
-- Luke supplies the pictures, generated in the AMS style on white; AAR cuts them out (`npm run avatar`). Twenty-one figures were supplied; Luke may trim the cast later by deleting files.
+- Luke supplies the pictures, generated in the AMS style on white; AAR cuts them out (`npm run avatar`). Fifteen professional renders (2026-09-28) replaced the twelve casual figures; each comes as a card with a waist-up crop, kept as `cast-NN-face.png` and shown where figures are small (everyone view, pickers), since the full standee reads too small there. Luke may trim the cast later by deleting files.
 
 Build-level guesses:
 - The nine AMS standees are `cast-01` to `cast-09` in their old alphabetical order; the old names keep working through an alias map and are written back as the numbered file.

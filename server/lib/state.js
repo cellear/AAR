@@ -85,10 +85,16 @@ function briefingFor(text, now) {
   return { sections };
 }
 
+/* `face` is a waist-up picture for the floor, where whole figures are
+   small: the office's own face.png, or the cast picture's -face twin. */
 function avatarFor(office, files) {
-  if (files.images.avatar) return { source: 'office', url: `/avatars/${encodeURIComponent(office.id)}/avatar.png` };
-  if (office.conf.avatar) return { source: 'cast', url: `/avatars/cast/${encodeURIComponent(castFile(office.conf.avatar))}` };
-  return { source: 'none', url: null };
+  if (files.images.avatar) return { source: 'office', url: `/avatars/${encodeURIComponent(office.id)}/avatar.png`, face: files.images.face ? `/avatars/${encodeURIComponent(office.id)}/face.png` : null };
+  if (office.conf.avatar) {
+    const file = castFile(office.conf.avatar);
+    const twin = file.replace(/\.png$/i, '-face.png');
+    return { source: 'cast', url: `/avatars/cast/${encodeURIComponent(file)}`, face: files.castFaces && files.castFaces.has(twin) ? `/avatars/cast/${encodeURIComponent(twin)}` : null };
+  }
+  return { source: 'none', url: null, face: null };
 }
 
 /* One office's snapshot. `session` is the newest live session attributed to

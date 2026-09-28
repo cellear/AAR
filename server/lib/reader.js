@@ -5,12 +5,18 @@
    snapshot is honest about what it knows: no session, no git, files only. */
 
 const fs = require('fs');
+const path = require('path');
 const staff = require('./staff');
 const office = require('./office');
 const state = require('./state');
 
 function staffExists(staffDir) {
   return staff.discoverOffices(staffDir).length > 0;
+}
+
+/* The cast's -face.png twins, so a snapshot can offer a face picture. */
+function castFaceSet(appRoot) {
+  try { return new Set(fs.readdirSync(path.join(appRoot, 'assets', 'avatars')).filter((f) => /-face\.png$/i.test(f))); } catch { return new Set(); }
 }
 
 function dirExists(dir) {
@@ -30,6 +36,7 @@ function readAll(config, { now = new Date(), live = {} } = {}) {
   for (const o of offices) {
     try {
       const files = office.readOffice(o.folder, { cos: cos !== null && cos.id === o.id });
+      files.castFaces = castFaceSet(config.appRoot);
       const sessions = (live.sessionsByOffice && live.sessionsByOffice[o.id]) || [];
       snapshots.push(state.buildOfficeSnapshot({
         office: o,
@@ -66,4 +73,4 @@ function readAll(config, { now = new Date(), live = {} } = {}) {
   };
 }
 
-module.exports = { readAll, staffExists, dirExists };
+module.exports = { readAll, staffExists, dirExists, castFaceSet };

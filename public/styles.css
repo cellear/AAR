@@ -498,3 +498,10 @@ details.about[open] summary { margin-bottom: 10px; }
 .msg .tool pre { background: var(--paper-deep); padding: 6px 8px; border-radius: 5px; font-size: 11.5px; max-height: 260px; overflow: auto; white-space: pre-wrap; word-break: break-word; margin: 4px 0 0; }
 .convo .earlier { align-self: center; margin-bottom: 4px; }
 .convo .none { color: var(--muted); font-style: italic; font-size: 14px; }
+
+/* face pictures on the floor: the face shows on the everyone view, the full
+   figure when focused or receded */
+.person .fig img.full { display: none; }
+.person .fig img.face { display: block; }
+.floor.focus .person .fig img.full { display: block; }
+.floor.focus .person .fig img.face { display: none; }

@@ -35,7 +35,11 @@ function castList(appRoot) {
   const dir = path.join(appRoot, 'assets', 'avatars');
   let entries;
   try { entries = fs.readdirSync(dir); } catch { return []; }
-  return entries.filter((f) => /\.png$/i.test(f)).sort().map((file) => ({ file, url: `/avatars/cast/${encodeURIComponent(file)}`, label: '' }));
+  const faces = new Set(entries.filter((f) => /-face\.png$/i.test(f)));
+  return entries.filter((f) => /\.png$/i.test(f) && !faces.has(f)).sort().map((file) => ({
+    file, url: `/avatars/cast/${encodeURIComponent(file)}`, label: '',
+    faceUrl: faces.has(file.replace(/\.png$/i, '-face.png')) ? `/avatars/cast/${encodeURIComponent(file.replace(/\.png$/i, '-face.png'))}` : null
+  }));
 }
 
 const { castFile, CAST_ALIASES } = require('./cast');

@@ -103,7 +103,7 @@ function createHandler(cfg, store) {
     }
     /* /avatars/<office>/avatar.png, office.png, or people/<image>. */
     const isPeople = parts.length === 3 && parts[1] === 'people' && /\.(png|jpe?g|gif|webp)$/i.test(parts[2]);
-    if (!isPeople && (parts.length !== 2 || !['avatar.png', 'office.png'].includes(parts[1]))) return json(res, 404, { error: 'not found' });
+    if (!isPeople && (parts.length !== 2 || !['avatar.png', 'face.png', 'office.png'].includes(parts[1]))) return json(res, 404, { error: 'not found' });
     const officeDir = resolveSafe(cfg.staffDir, parts[0]);
     if (!officeDir || path.dirname(officeDir) !== cfg.staffDir) return json(res, 404, { error: 'not found' });
     if (!fs.existsSync(path.join(officeDir, 'aa.conf'))) return json(res, 404, { error: 'not found' });

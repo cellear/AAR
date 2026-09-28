@@ -113,6 +113,7 @@ this page. Everything outside the block is yours.
 | File | Use |
 |---|---|
 | `avatar.png` | The standee. Transparent PNG, about 340 px tall, no wider than 260. Overrides the `avatar=` key. |
+| `face.png` | Optional waist-up picture, shown where figures are small: the floor's everyone view and the pickers. Focus mode and the office page use the standee. Falls back to the standee. Cast pictures carry their own as `cast-NN-face.png`. |
 | `office.png` | The office page's background scene, 16:9, at least 1600 px wide, washed with paper so the cards stay readable. Optional. |
 | `people/*.png`, `.jpg`, `.gif`, `.webp` | Pictures for the People section, captioned from the file name. |
 

@@ -15,6 +15,7 @@ const OWNED = Object.freeze({
   status: 'status.md',
   claude: 'CLAUDE.md',
   avatar: 'avatar.png',
+  face: 'face.png',
   office: 'office.png',
   mornings: 'mornings'
 });
@@ -83,6 +84,7 @@ function readOffice(folder, { cos = false } = {}) {
     mtimes: { readme: readme.mtime, briefing: briefing.mtime, log: log.mtime, status: status.mtime },
     images: {
       avatar: exists(path.join(folder, OWNED.avatar)),
+      face: exists(path.join(folder, OWNED.face)),
       office: exists(path.join(folder, OWNED.office))
     },
     people: peopleImages(folder),
