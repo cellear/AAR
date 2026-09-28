@@ -235,8 +235,23 @@
     delete $('#firstrun').dataset.ready;
     renderWarnings();
     if (view === 'cards') renderCards(); else renderFloor();
+    renderDisabled();
     first = false;
   }
+
+  /* Assistants whose office sits in Disabled/: a line under the floor with
+     an Enable button each. */
+  function renderDisabled() {
+    const list = (state.staff && state.staff.disabled) || [];
+    const box = $('#disabled');
+    box.style.display = list.length ? '' : 'none';
+    box.innerHTML = list.length ? `<span class="k">Disabled:</span> ${list.map((d) => `<span class="d"><b>${esc(d.name)}</b>${d.role ? ` <span class="k">${esc(d.role)}</span>` : ''} <button class="btn small" data-enable="${esc(d.id)}">Enable</button></span>`).join('')}` : '';
+  }
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-enable]'); if (!b) return;
+    try { await getJSON(`/api/office/${encodeURIComponent(b.dataset.enable)}/enable`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }); }
+    catch (err) { toast(err.message); }
+  });
 
   /* ---------- how it works, first run, change folder ---------- */
   function howItWorks(brand) {
@@ -251,7 +266,7 @@
         <li><b>Talking to an assistant</b> happens from their office: press <b>Talk</b>, type, and the reply streams in. Or take it to a terminal: <b>Open session</b> copies the command, and Claude Code starts there as that assistant. Either way the floor updates within seconds.</li>
       </ol>
       <div class="note"><p>${esc(brand)} writes exactly four things: the staff folder when you create it here, a new office when you hire, its own settings file (<code>aar.config.json</code> in the app folder), and a record of the sessions it started for you (<code>aar.sessions.json</code>, same folder). <code>npm run reset</code> forgets the settings; it never touches a staff folder.</p>
-      <p>${esc(brand)} never modifies or deletes a file it didn't create. It writes only inside the staff folder you name here, and only to add a new office; it never edits an existing one. The one exception is its own settings file in the app folder. If git fetch is left on, ${esc(brand)} also asks your staff repository what origin has, which changes nothing in your files or branches.</p></div>`;
+      <p>${esc(brand)} never modifies or deletes a file it didn't create. It writes only inside the staff folder you name here, and only to add a new office; it never edits an existing one. Disabling an assistant moves their office folder into <code>Disabled/</code> in the staff folder, whole and untouched, and enabling moves it back. The one exception is its own settings file in the app folder. If git fetch is left on, ${esc(brand)} also asks your staff repository what origin has, which changes nothing in your files or branches.</p></div>`;
   }
 
   let castOptions = null;

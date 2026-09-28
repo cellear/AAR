@@ -138,11 +138,14 @@ full formats are in `docs/conventions.md`.
     POST /api/config             point the app at another staff folder (writes aar.config.json)
     GET  /api/talk/<folder>      the AAR-started session's state: phase, pending permissions
     POST /api/talk/<folder>/start|say|stop|answer|forget   talk to that assistant
+    POST /api/office/<folder>/disable|enable               move the office into or out of Disabled/
 
 Every other method is answered 405 before any path is resolved. AAR never
 modifies or deletes a file it did not create: it adds a new office folder
 inside the staff folder, and it rewrites its own `aar.config.json` and
-`aar.sessions.json`. An assistant AAR runs for you writes into its office as
+`aar.sessions.json`. Disabling an assistant moves its office folder into
+`Disabled/` in the staff folder, untouched; enabling moves it back. An
+assistant AAR runs for you writes into its office as
 a terminal session would. The optional periodic `git fetch` updates the
 staff repository's knowledge of origin and changes no file or branch.
 

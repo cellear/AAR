@@ -157,6 +157,14 @@ Four things only, and never into a file it did not create:
 3. `aar.config.json` in the app folder: the staff folder path, port and tuning. `npm run reset` removes it.
 4. `aar.sessions.json` in the app folder: which Claude Code session AAR started for each office, so a conversation resumes after AAR restarts. Written only when you talk to an assistant from the page.
 
+One move, never a deletion: **Disable this assistant** on an office page
+moves that office folder, whole and untouched, into `Disabled/` inside the
+staff folder, where the lobby does not look. **Enable** on the lobby moves
+it back. Either refuses if a folder of that name is already at the
+destination. The Chief of Staff cannot be disabled.
+
+    POST /api/office/<folder>/disable|enable
+
 An assistant AAR runs for you writes into its own office the way a terminal
 session would (its `status.md`, `log.md`, and so on). That is the assistant's
 work, under the office's `CLAUDE.md` rules, not AAR's.

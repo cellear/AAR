@@ -56,6 +56,11 @@ Build-level guesses:
 - Sheets of figures split at full-height background gaps; overlapping crowds do not split.
 - `jimp` (pure JavaScript) is the second runtime dependency, chosen over `sharp` to avoid a native binary per platform.
 
+## Rulings from Luke: disabling an assistant (2026-09-28)
+
+- There is a way to take an assistant off the floor. It is called **Disable this assistant** (the human-team metaphor is loosened; these are programs), lives on the office page only, and moves the office folder into `Disabled/` inside the staff folder. Nothing is deleted, so the never-delete promise holds. Enable is a line under the floor in the lobby.
+- Build-level guesses: the Chief of Staff cannot be disabled (the app is built around it); a running AAR session for the office is stopped first and its record kept, so the conversation resumes if the office comes back; a name clash at the destination refuses rather than overwrites.
+
 ## Assumptions still standing
 
 Guesses made while building that Luke has seen and not overturned. Each is a

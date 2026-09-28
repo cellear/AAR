@@ -365,6 +365,7 @@
         ${l.addDir ? `<dt class="k">add_dir</dt><dd>${esc(l.addDir)}</dd>` : ''}
         <dt class="k">folder</dt><dd>${esc(office.folder)}</dd>
       </dl></div>
+      ${office.cos ? '' : `<div class="side"><h3>Housekeeping</h3><button class="btn" id="disable">Disable this assistant</button><p class="k">Moves the office folder into <code>Disabled/</code> inside the staff folder, off the floor. Nothing is deleted; the lobby can enable it again.</p></div>`}
       ${office.session ? `<div class="side"><h3>Session</h3><dl><dt class="k">status</dt><dd>${esc(office.session.status)}</dd><dt class="k">kind</dt><dd>${esc(office.session.kind)}</dd><dt class="k">name</dt><dd>${esc(office.session.name || '—')}</dd><dt class="k">started</dt><dd>${esc(relTime(office.session.startedAt))}</dd>${office.sessions.length ? `<dt class="k">others</dt><dd>${office.sessions.map((s) => esc(s.name || s.id.slice(0, 8)) + ' (' + esc(s.status) + ')').join('<br>')}</dd>` : ''}</dl></div>` : ''}`;
   }
 
@@ -409,6 +410,15 @@
       keep.insertAdjacentHTML('afterend', (office.briefing === null ? '<article class="pcard empty"><h2>Briefing</h2><div class="md"><p>No briefing.md yet.</p></div></article>' : sections.map(sectionCard).join('')) + logCard() + readmeCard());
     }
   }
+
+  document.addEventListener('click', async (e) => {
+    if (!e.target.closest('#disable')) return;
+    if (!confirm(`Disable ${office.name}? The office folder moves into Disabled/ inside the staff folder. Nothing is deleted.`)) return;
+    try {
+      await getJSON(`/api/office/${encodeURIComponent(id)}/disable`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      location.href = '/';
+    } catch (err) { toast(err.message); }
+  });
 
   $('#launch').addEventListener('click', async () => {
     try {
