@@ -111,3 +111,22 @@ test('talk: turned off in the settings, the page is read-only again', async (t) 
   assert.equal(await page.locator('.talkstart').count(), 0);
   assert.match(await page.textContent('#stats'), /read-only/);
 });
+
+test('talk: a draft survives the conversation poll and a status refresh', async (t) => {
+  const a = await app(t, { env: FAKE });
+  if (!a) return;
+  const { page } = a;
+  /* Prospects has no transcript yet, the state where the empty card used
+     to be rebuilt every poll and take the reply box with it. */
+  await a.goto('/office/Prospects#reply');
+  await page.waitForSelector('#say');
+  await page.click('#say');
+  await page.keyboard.type('A long message that takes a while to write, longer than one poll');
+  const before = await page.evaluateHandle(() => document.querySelector('#say'));
+  await page.waitForTimeout(4600);
+  await page.evaluate(() => fetch('/api/talk/Prospects').then(() => null));
+  await page.waitForTimeout(300);
+  assert.equal(await page.inputValue('#say'), 'A long message that takes a while to write, longer than one poll');
+  assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.id), 'say', 'focus stays in the box');
+  assert.equal(await page.evaluate((b) => b === document.querySelector('#say'), before), true, 'the same textarea element is still there');
+});

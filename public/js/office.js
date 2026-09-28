@@ -113,13 +113,17 @@
       /* No transcript yet. Keep any provisional messages the talk stream
          has drawn; only build the empty state when there is nothing. */
       const existing = $('#msgs');
-      if (existing && existing.querySelector('.msg')) return;
+      if (existing) return;
       box.innerHTML = `<h2>Conversation</h2>${barHTML()}<div class="none">No transcript on this Mac for this office yet. Transcripts appear once a session has run in the office folder in a terminal here, or once you start talking below; sessions from the desktop app or the cloud leave none.</div><div class="msgs" id="msgs" style="display:none"></div>`;
       drawn.clear();
       renderReply();
       return;
     }
     let msgs = $('#msgs');
+    /* The empty state's hidden list has no paging button: the first
+       transcript rebuilds the card properly (the reply box comes back with
+       its draft). */
+    if (msgs && !$('#earlier')) msgs = null;
     if (!msgs) {
       box.innerHTML = `<h2>Conversation</h2>${barHTML()}<div class="msgs" id="msgs"><button class="btn earlier" id="earlier" style="display:none"></button></div>`;
       renderReply();
@@ -228,15 +232,22 @@
     if (!box) { box = document.createElement('div'); box.className = 'reply'; box.id = 'reply'; convoCard.appendChild(box); }
     const t = talk.state;
     const busy = t.running && t.phase !== 'idle';
-    const draft = box.querySelector('textarea') ? box.querySelector('textarea').value : talk.draft;
-    box.innerHTML = `<div class="rstatus">${talkStatusLine()}</div>
-      ${(t.pending || []).map(askHTML).join('')}
-      <textarea id="say" placeholder="Talk to ${esc(office.name)}… (Enter to send, Shift+Enter for a new line)" ${busy ? 'disabled' : ''}></textarea>
-      <div class="rrow"><button class="btn primary" id="send" ${busy ? 'disabled' : ''}>Send</button>
+    /* The textarea is built once and then left alone: a status refresh
+       while Luke is typing must not replace it, or the draft, caret and
+       focus go with it. Everything around it is patched. */
+    if (!box.querySelector('textarea')) {
+      box.innerHTML = `<div class="rstatus"></div><div class="asks"></div>
+        <textarea id="say" placeholder="Talk to ${esc(office.name)}… (Enter to send, Shift+Enter for a new line)"></textarea>
+        <div class="rrow"></div>`;
+      box.querySelector('textarea').value = talk.draft || '';
+    }
+    box.querySelector('.rstatus').innerHTML = talkStatusLine();
+    box.querySelector('.asks').innerHTML = (t.pending || []).map(askHTML).join('');
+    box.querySelector('textarea').disabled = busy;
+    box.querySelector(':scope > .rrow').innerHTML = `<button class="btn primary" id="send" ${busy ? 'disabled' : ''}>Send</button>
         ${t.running ? '<button class="btn" id="stoptalk">Stop</button>' : '<button class="btn" id="starttalk">Start</button>'}
         ${!t.running && t.sessionId ? '<button class="btn" id="forgettalk" title="Forget the remembered conversation; the next Start begins fresh">New conversation</button>' : ''}
-        <span class="hint">Sessions you open in a terminal are separate; this one is AAR's.</span></div>`;
-    box.querySelector('textarea').value = draft;
+        <span class="hint">Sessions you open in a terminal are separate; this one is AAR's.</span>`;
   }
 
   /* The event stream is the source of truth for talk state; a POST's reply
@@ -309,13 +320,16 @@
   }
 
   document.addEventListener('click', async (e) => {
-    if (e.target.closest('#send')) { const ta = $('#say'); const text = ta.value.trim(); if (!text) return; ta.value = ''; await talkPost('say', { text }); return; }
+    if (e.target.closest('#send')) { const ta = $('#say'); const text = ta.value.trim(); if (!text) return; ta.value = ''; talk.draft = ''; await talkPost('say', { text }); return; }
     if (e.target.closest('#starttalk')) { await talkPost('start'); return; }
     if (e.target.closest('#stoptalk')) { await talkPost('stop'); return; }
     if (e.target.closest('#forgettalk')) { await talkPost('forget'); return; }
     const a = e.target.closest('.ask [data-allow]');
     if (a) { const req = a.closest('.ask').dataset.req; await talkPost('answer', { requestId: req, allow: a.dataset.allow === '1' }); }
   });
+  /* Remember the draft so it survives a rebuild of the conversation card
+     (the first transcript arriving, for one). */
+  document.addEventListener('input', (e) => { if (e.target.id === 'say') talk.draft = e.target.value; });
   document.addEventListener('keydown', (e) => {
     if (e.target.id === 'say' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#send').click(); }
   });
