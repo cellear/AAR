@@ -133,11 +133,16 @@ all yours.
 
 ## What AAR writes
 
-Three things only, and never into a file it did not create:
+Four things only, and never into a file it did not create:
 
 1. The staff folder, on the first-run screen: the folder if it is missing, and a `Chief of Staff/` office inside it from `template/chief-of-staff/`. Refused if that office already exists.
 2. A new office folder, from the hire wizard, from `template/office/`. Refused if the folder exists.
 3. `aar.config.json` in the app folder: the staff folder path, port and tuning. `npm run reset` removes it.
+4. `aar.sessions.json` in the app folder: which Claude Code session AAR started for each office, so a conversation resumes after AAR restarts. Written only when you talk to an assistant from the page.
+
+An assistant AAR runs for you writes into its own office the way a terminal
+session would (its `status.md`, `log.md`, and so on). That is the assistant's
+work, under the office's `CLAUDE.md` rules, not AAR's.
 
 The optional periodic `git fetch` in the staff folder updates the
 repository's record of origin. It changes no file and no branch.
@@ -153,8 +158,27 @@ repository's record of origin. It changes no file and no branch.
 | `stuckMs` | `900000` | Busy longer than this (fifteen minutes) is flagged Stuck. |
 | `gitFetchMs` | `300000` | How often to `git fetch` the staff repo. `0` disables it. |
 | `models` | `opus, sonnet, haiku` | The choices offered by the hire wizard. |
+| `talk.enabled` | `true` | Talking to assistants from the page. `false` hides the reply box and Start / Stop and makes the app read-only again. |
+| `talk.permissionMode` | `default` | The Claude Code permission mode for sessions AAR starts. `default` asks you on the page for anything that needs approval. |
+| `talk.maxBudgetUsd` | unset | If set, a spend cap per AAR-started session, passed to the SDK. |
 
 Environment overrides for one run: `AAR_CONFIG` (another settings file),
 `AAR_STAFF_DIR`, `AAR_PORT` (`0` picks a free port), `AAR_NO_OPEN=1` (do
-not open the browser), `AAR_TRANSCRIPT_ROOT` and `AAR_CLAUDE_BIN` (used by
-the tests).
+not open the browser), `AAR_TRANSCRIPT_ROOT` (used by the tests),
+`AAR_CLAUDE_BIN` (the Claude Code executable for the launch command and for
+the SDK; by default the SDK uses its own bundled build), and
+`AAR_TALK_FAKE=1` (a scripted stand-in assistant instead of Claude Code,
+used by the tests and for trying the pages).
+
+## Talking to an assistant from the page
+
+Press **Talk** on the floor, or type in the reply box under an office's
+Conversation card. AAR starts a Claude Code session in that office folder
+through the Agent SDK and keeps it running until you press **Stop** or quit
+AAR. The session is AAR's: sessions you open in a terminal are separate and
+never written to. One message at a time; while the assistant is thinking
+the box is closed. When the assistant wants to use a tool that needs
+approval, a prompt appears in the box and a **?** pin on the floor, and
+nothing runs until you answer. Quit AAR and the session stops; send another
+message later and the same conversation resumes from `aar.sessions.json`.
+**New conversation** forgets it.

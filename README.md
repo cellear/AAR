@@ -14,9 +14,13 @@ departed from it. The system it generalises is described in
 
 ## Quick start
 
-Needs Node 22. No dependencies to install.
+Needs Node 22.
 
+    npm install     # one time: the Agent SDK, for talking to assistants from the page
     npm start
+
+`npm start` works without the install too; the reply box then says the SDK
+is missing and everything else runs read-only.
 
 On first start the app writes `aar.config.json` with defaults (staff folder
 `~/aar-staff`, port 3111) and opens `http://localhost:3111/`. If the staff
@@ -125,15 +129,22 @@ full formats are in `docs/conventions.md`.
     POST /api/setup              first run only: create the staff folder
 
     POST /api/config             point the app at another staff folder (writes aar.config.json)
+    GET  /api/talk/<folder>      the AAR-started session's state: phase, pending permissions
+    POST /api/talk/<folder>/start|say|stop|answer|forget   talk to that assistant
 
-Every other method is answered 405 before any path is resolved. The three
-POSTs are the app's only writes; none ever overwrites an existing folder or
-touches an office's files. AAR never modifies or deletes a file it did not
-create: it adds a new office folder inside the staff folder, and it rewrites
-its own `aar.config.json`. The optional periodic `git fetch` updates the
+Every other method is answered 405 before any path is resolved. AAR never
+modifies or deletes a file it did not create: it adds a new office folder
+inside the staff folder, and it rewrites its own `aar.config.json` and
+`aar.sessions.json`. An assistant AAR runs for you writes into its office as
+a terminal session would. The optional periodic `git fetch` updates the
 staff repository's knowledge of origin and changes no file or branch.
 
 ## Status
+
+Press **Talk** on an assistant and AAR starts a Claude Code session for them
+in their office, so you can talk from the page; replies stream in, and when
+they want to use a tool they wait for your Allow. Quit and come back and the
+conversation resumes. Terminal sessions stay yours.
 
 The lobby is a floor: every assistant stands on it with a name plate showing
 their `Now` line (or their `Need from you` line, in red) and how long since
@@ -146,4 +157,5 @@ Phases 1 to 6 of the plan: the reader, the JSON API, the live sources
 (`claude agents --json` polling, session attribution, transcript tailing, git
 status, the file watcher and the event stream), the lobby, the office view,
 the Chief of Staff view with the printable morning sheet, and the hire wizard.
-Phase 7 (`start.sh`, tuning, polish) is what remains of the MVP.
+Phase 7 (`start.sh`, tuning, polish) is what remains of the MVP. The talk
+layer (this branch) is the first step past it.
