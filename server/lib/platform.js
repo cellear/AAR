@@ -36,6 +36,12 @@ function transcriptDirForCwd(cwd) {
   return path.join(transcriptRoot(), bucketNameForCwd(cwd));
 }
 
+/* Where the Agent SDK should find Claude Code. Empty means the SDK's own
+   bundled build; AAR_CLAUDE_BIN points it at the installed one instead. */
+function sdkExecutable() {
+  return process.env.AAR_CLAUDE_BIN || '';
+}
+
 /* The command that opens a URL in the default browser, for start.sh and npm start. */
 function openCommand(url) {
   if (isMac()) return ['open', [url]];
@@ -43,4 +49,4 @@ function openCommand(url) {
   return ['xdg-open', [url]];
 }
 
-module.exports = { homeDir, isMac, claudeBinary, transcriptRoot, bucketNameForCwd, transcriptDirForCwd, openCommand };
+module.exports = { homeDir, isMac, claudeBinary, sdkExecutable, transcriptRoot, bucketNameForCwd, transcriptDirForCwd, openCommand };

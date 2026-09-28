@@ -18,3 +18,6 @@ aar.config.json
 /STAFF/
 /staff/
 package-lock.json
+
+# Which session AAR started for each office, so conversations resume.
+aar.sessions.json
