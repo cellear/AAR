@@ -69,8 +69,12 @@
     return '';
   }
 
+  /* On the crowded floor a waist-up picture reads better than a whole
+     figure; the full standee comes back when the person is focused. */
   function figure(o) {
-    return o.avatar && o.avatar.url ? `<img src="${esc(o.avatar.url)}" alt="">` : silhouette(o.accent);
+    if (!o.avatar || !o.avatar.url) return silhouette(o.accent);
+    if (o.avatar.face) return `<img class="full" src="${esc(o.avatar.url)}" alt=""><img class="face" src="${esc(o.avatar.face)}" alt="">`;
+    return `<img src="${esc(o.avatar.url)}" alt="">`;
   }
 
   function personHTML(o) {
@@ -248,7 +252,7 @@
   function pickerHTML(opts, accent) {
     const swatches = opts.accents.map((a) => `<span class="swatch ${a === accent ? 'on' : ''}" data-accent="${esc(a)}" style="background:${esc(a)}"></span>`).join('');
     const own = `<label class="on"><input type="radio" name="avatar" value="own" checked><div class="fig">${silhouette(accent)}</div>Supply my own</label>`;
-    const cast = opts.cast.map((c) => `<label><input type="radio" name="avatar" value="${esc(c.file)}"><div class="fig"><img src="${esc(c.url)}" alt=""></div>${esc(c.label)}</label>`).join('');
+    const cast = opts.cast.map((c) => `<label><input type="radio" name="avatar" value="${esc(c.file)}"><div class="fig"><img src="${esc(c.faceUrl || c.url)}" alt=""></div></label>`).join('');
     return `<label>Accent colour<input name="accent" value="${esc(accent)}" pattern="#[0-9a-fA-F]{6}"><div class="swatches">${swatches}</div></label>
       <label>Standee<span class="path-note"> a starter picture, or drop your own avatar.png into the office later</span></label><div class="cast">${own}${cast}</div>`;
   }
