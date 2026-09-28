@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AAR</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%235b7c99%27/%3E%3Ccircle cx=%2716%27 cy=%2711%27 r=%275%27 fill=%27%23fffdf8%27/%3E%3Cpath d=%27M7 27c0-6 4-9 9-9s9 3 9 9z%27 fill=%27%23fffdf8%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <h1 id="brand">AAR</h1>
+  <span class="staffdir" id="staffdir" title="Click to point the app at another staff folder"></span>
+  <a class="helplink" id="helplink" href="#help">How this works</a>
+  <div class="stats" id="stats"><span>connecting…</span></div>
+  <span class="viewtoggle" id="viewtoggle" style="display:none"><a href="#" data-view="floor">Floor</a><a href="#cards" data-view="cards">Cards</a></span>
+  <a class="hirebtn" href="/hire" id="hirebtn" style="display:none">Hire</a>
+</header>
+<main>
+  <div id="overlay"></div>
+  <section class="firstrun" id="firstrun" style="display:none"></section>
+  <section class="floor" id="floor" style="display:none">
+    <a class="close" id="close" href="#" style="display:none">✕ back to everyone</a>
+    <div class="warnings" id="warnings" style="display:none"></div>
+    <div class="panels" id="panels" style="display:none"></div>
+    <div class="row" id="row"></div>
+    <section class="frontdesk" id="frontdesk"><h2>Front desk</h2><div class="strip"></div></section>
+    <div class="ground"></div>
+  </section>
+  <section class="lobby" id="lobby" style="display:none">
+    <div class="cards" id="cards"></div>
+  </section>
+</main>
+<script src="/vendor/marked.min.js"></script>
+<script src="/js/render.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/lobby.js"></script>
+</body>
+</html>

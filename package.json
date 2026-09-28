@@ -1,0 +1,22 @@
+{
+  "name": "aar",
+  "version": "0.1.0",
+  "description": "AAR: a read-only local web dashboard for a staff of AI administrative assistants",
+  "private": true,
+  "type": "commonjs",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node --test \"test/*.test.js\"",
+    "demo": "node server/demo.js",
+    "reset": "node server/reset.js",
+    "test:browser": "node --test \"test/browser/*.test.js\""
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "playwright-core": "^1.50.0"
+  }
+}
