@@ -17,6 +17,7 @@ const state = require('./lib/state');
 const setup = require('./lib/setup');
 const launch = require('./lib/launch');
 const hire = require('./lib/hire');
+const disable = require('./lib/disable');
 const transcripts = require('./lib/transcripts');
 const { createTalk } = require('./lib/talk');
 const { createStore } = require('./lib/store');
@@ -25,7 +26,8 @@ const PUBLIC = path.join(loadConfig.APP_ROOT, 'public');
 const CAST = path.join(loadConfig.APP_ROOT, 'assets', 'avatars');
 const POST_ROUTES = new Set(['/api/setup', '/api/hire', '/api/config']);
 const TALK_POST = /^\/api\/talk\/[^/]+\/(start|say|stop|answer|forget)$/;
-const isPostRoute = (p) => POST_ROUTES.has(p) || TALK_POST.test(p);
+const OFFICE_POST = /^\/api\/office\/[^/]+\/(disable|enable)$/;
+const isPostRoute = (p) => POST_ROUTES.has(p) || TALK_POST.test(p) || OFFICE_POST.test(p);
 const MAX_BODY = 64 * 1024;
 
 const MIME = {
@@ -158,6 +160,23 @@ function createHandler(cfg, store, talk) {
         else if (verb === 'answer') r = talk.answer(id, body.requestId, body.allow === true, body.updatedInput);
         else r = talk.forget(id);
         return json(res, verb === 'say' ? 202 : 200, r);
+      } catch (err) {
+        return json(res, err.status || 500, { error: err.message });
+      }
+    }
+    const om = OFFICE_POST.exec(pathname);
+    if (om) {
+      const id = decodeURIComponent(pathname.split('/')[3]);
+      try {
+        let r;
+        if (om[1] === 'disable') {
+          /* A session AAR is running for the office stops first; its record
+             stays, so the conversation resumes if the office comes back. */
+          if (talk && talk.liveSessions().some((s) => s.cwd === path.join(cfg.staffDir, id))) await talk.stop(id);
+          r = disable.disable(id, cfg);
+        } else r = disable.enable(id, cfg);
+        store.rebuild({ full: true });
+        return json(res, 200, r);
       } catch (err) {
         return json(res, err.status || 500, { error: err.message });
       }
