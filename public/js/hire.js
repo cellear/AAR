@@ -3,14 +3,15 @@
    /api/hire is the app's one write besides first-run setup. */
 (function () {
   'use strict';
-  const { esc, silhouette, getJSON, postJSON, toast } = window.AAR;
+  const { esc, getJSON, postJSON, toast } = window.AAR;
   const $ = (sel) => document.querySelector(sel);
   const form = $('#hire');
   let opts = null;
 
   function renderCast() {
-    const own = `<label class="on"><input type="radio" name="avatar" value="own" checked><div class="fig">${silhouette($('#accent').value)}</div>I'll supply my own</label>`;
-    $('#cast').innerHTML = own + opts.cast.map((c) => `<label><input type="radio" name="avatar" value="${esc(c.file)}"><div class="fig"><img src="${esc(c.faceUrl || c.url)}" alt=""></div></label>`).join('');
+    /* The first picture is preselected; an office's own avatar.png, dropped
+       in later, overrides whichever was chosen. */
+    $('#cast').innerHTML = opts.cast.map((c, i) => `<label class="${i ? '' : 'on'}"><input type="radio" name="avatar" value="${esc(c.file)}" ${i ? '' : 'checked'}><div class="fig"><img src="${esc(c.faceUrl || c.url)}" alt=""></div></label>`).join('');
     $('#cast').addEventListener('change', () => {
       document.querySelectorAll('#cast label').forEach((l) => l.classList.toggle('on', l.querySelector('input').checked));
     });
@@ -24,8 +25,6 @@
       $('#accent').value = sw.dataset.accent;
       document.querySelectorAll('.swatch').forEach((s) => s.classList.toggle('on', s === sw));
       form.style.setProperty('--accent', sw.dataset.accent);
-      const svg = document.querySelector('#cast label:first-child .fig');
-      if (svg) svg.innerHTML = silhouette(sw.dataset.accent);
     });
   }
 

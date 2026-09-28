@@ -7,6 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const staff = require('./staff');
+const disable = require('./disable');
 const office = require('./office');
 const state = require('./state');
 
@@ -59,6 +60,7 @@ function readAll(config, { now = new Date(), live = {} } = {}) {
       staffDir: config.staffDir,
       exists: dirExists(config.staffDir),
       count: snapshots.length,
+      disabled: (() => { try { return disable.listDisabled(config); } catch { return []; } })(),
       needsYou: snapshots.filter((s) => s.badges.includes('needsYou')).length,
       cos: cos ? cos.id : null,
       warnings,

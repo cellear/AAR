@@ -7,6 +7,7 @@
    stale, so the page can say so instead of going blank. */
 
 const staff = require('./staff');
+const disable = require('./disable');
 const office = require('./office');
 const state = require('./state');
 const sessions = require('./sessions');
@@ -19,6 +20,8 @@ const { dirExists, castFaceSet } = require('./reader');
 /* `sources` lets tests replace the CLI and git with fixtures. */
 /* `talk` is the talk layer (server/lib/talk.js); its sessions join the live
    list so the floor shows them like any other. */
+function disabledList(cfg) { try { return disable.listDisabled(cfg); } catch { return []; } }
+
 function createStore(cfg, { live = true, now = () => new Date(), sources = {}, talk = null } = {}) {
   const listSessions = sources.listSessions || sessions.listSessions;
   const gitStatus = sources.gitStatus || git.status;
@@ -63,7 +66,8 @@ function createStore(cfg, { live = true, now = () => new Date(), sources = {}, t
       staff: {
         brand: cfg.brand, staffDir: cfg.staffDir, exists: dirExists(cfg.staffDir), count: snapshots.length,
         needsYou: snapshots.filter((s) => s.badges.includes('needsYou')).length,
-        cos: cos ? cos.id : null, warnings, readOnly: !(talk && talk.enabled), settingsExist: cfg.settingsExist !== false
+        cos: cos ? cos.id : null, warnings, readOnly: !(talk && talk.enabled), settingsExist: cfg.settingsExist !== false,
+        disabled: disabledList(cfg)
       },
       offices: snapshots,
       cos: cos ? snapshots.find((s) => s.id === cos.id) || null : null,

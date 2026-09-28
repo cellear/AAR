@@ -235,8 +235,23 @@
     delete $('#firstrun').dataset.ready;
     renderWarnings();
     if (view === 'cards') renderCards(); else renderFloor();
+    renderDisabled();
     first = false;
   }
+
+  /* Assistants whose office sits in Disabled/: a line under the floor with
+     an Enable button each. */
+  function renderDisabled() {
+    const list = (state.staff && state.staff.disabled) || [];
+    const box = $('#disabled');
+    box.style.display = list.length ? '' : 'none';
+    box.innerHTML = list.length ? `<span class="k">Disabled:</span> ${list.map((d) => `<span class="d"><b>${esc(d.name)}</b>${d.role ? ` <span class="k">${esc(d.role)}</span>` : ''} <button class="btn small" data-enable="${esc(d.id)}">Enable</button></span>`).join('')}` : '';
+  }
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-enable]'); if (!b) return;
+    try { await getJSON(`/api/office/${encodeURIComponent(b.dataset.enable)}/enable`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }); }
+    catch (err) { toast(err.message); }
+  });
 
   /* ---------- how it works, first run, change folder ---------- */
   function howItWorks(brand) {
@@ -251,7 +266,7 @@
         <li><b>Talking to an assistant</b> happens from their office: press <b>Talk</b>, type, and the reply streams in. Or take it to a terminal: <b>Open session</b> copies the command, and Claude Code starts there as that assistant. Either way the floor updates within seconds.</li>
       </ol>
       <div class="note"><p>${esc(brand)} writes exactly four things: the staff folder when you create it here, a new office when you hire, its own settings file (<code>aar.config.json</code> in the app folder), and a record of the sessions it started for you (<code>aar.sessions.json</code>, same folder). <code>npm run reset</code> forgets the settings; it never touches a staff folder.</p>
-      <p>${esc(brand)} never modifies or deletes a file it didn't create. It writes only inside the staff folder you name here, and only to add a new office; it never edits an existing one. The one exception is its own settings file in the app folder. If git fetch is left on, ${esc(brand)} also asks your staff repository what origin has, which changes nothing in your files or branches.</p></div>`;
+      <p>${esc(brand)} never modifies or deletes a file it didn't create. It writes only inside the staff folder you name here, and only to add a new office; it never edits an existing one. Disabling an assistant moves their office folder into <code>Disabled/</code> in the staff folder, whole and untouched, and enabling moves it back. The one exception is its own settings file in the app folder. If git fetch is left on, ${esc(brand)} also asks your staff repository what origin has, which changes nothing in your files or branches.</p></div>`;
   }
 
   let castOptions = null;
@@ -263,10 +278,9 @@
 
   function pickerHTML(opts, accent) {
     const swatches = opts.accents.map((a) => `<span class="swatch ${a === accent ? 'on' : ''}" data-accent="${esc(a)}" style="background:${esc(a)}"></span>`).join('');
-    const own = `<label class="on"><input type="radio" name="avatar" value="own" checked><div class="fig">${silhouette(accent)}</div>Supply my own</label>`;
-    const cast = opts.cast.map((c) => `<label><input type="radio" name="avatar" value="${esc(c.file)}"><div class="fig"><img src="${esc(c.faceUrl || c.url)}" alt=""></div></label>`).join('');
+    const cast = opts.cast.map((c, i) => `<label class="${i ? '' : 'on'}"><input type="radio" name="avatar" value="${esc(c.file)}" ${i ? '' : 'checked'}><div class="fig"><img src="${esc(c.faceUrl || c.url)}" alt=""></div></label>`).join('');
     return `<label>Accent colour<input name="accent" value="${esc(accent)}" pattern="#[0-9a-fA-F]{6}"><div class="swatches">${swatches}</div></label>
-      <label>Standee<span class="path-note"> a starter picture, or drop your own avatar.png into the office later</span></label><div class="cast">${own}${cast}</div>`;
+      <label>Standee<span class="path-note"> a starter picture, or drop your own avatar.png into the office later</span></label><div class="cast">${cast}</div>`;
   }
 
   function wirePicker(form) {
@@ -274,7 +288,6 @@
       const sw = e.target.closest('.swatch'); if (!sw) return;
       form.accent.value = sw.dataset.accent;
       form.querySelectorAll('.swatch').forEach((x) => x.classList.toggle('on', x === sw));
-      const fig = form.querySelector('.cast label:first-child .fig'); if (fig) fig.innerHTML = silhouette(sw.dataset.accent);
     });
     form.querySelector('.cast').addEventListener('change', () => {
       form.querySelectorAll('.cast label').forEach((l) => l.classList.toggle('on', l.querySelector('input').checked));

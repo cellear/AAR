@@ -526,3 +526,8 @@ details.about[open] summary { margin-bottom: 10px; }
 .person .fig img.face { display: block; }
 .floor.focus .person .fig img.full { display: block; }
 .floor.focus .person .fig img.face { display: none; }
+
+/* ---------- disabled assistants: a chip on the floor's near edge ---------- */
+.disabled { position: fixed; left: 16px; top: 62px; z-index: 5; background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; box-shadow: 0 2px 6px rgba(0,0,0,.08); font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+.disabled .d { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
+.btn.small { padding: 2px 8px; font-size: 12px; }

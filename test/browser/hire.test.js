@@ -11,7 +11,8 @@ test('hire wizard: creates an office, refuses a duplicate, the floor gains a fig
   const { page } = a;
   await a.goto('/hire');
   await page.waitForSelector('#cast label');
-  assert.ok((await page.locator('#cast label').count()) >= 10, 'starter cast plus own');
+  assert.ok((await page.locator('#cast label').count()) >= 10, 'the starter cast');
+  assert.equal(await page.locator('#cast label:first-child input').isChecked(), true, 'the first picture is preselected');
   await page.fill('input[name=name]', 'Ivy');
   await page.fill('input[name=role]', 'AI Community');
   assert.equal(await page.inputValue('input[name=folder]'), 'AI Community', 'folder suggested from the role');

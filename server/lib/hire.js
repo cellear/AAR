@@ -36,13 +36,13 @@ function castList(appRoot) {
   let entries;
   try { entries = fs.readdirSync(dir); } catch { return []; }
   const faces = new Set(entries.filter((f) => /-face\.png$/i.test(f)));
-  return entries.filter((f) => /\.png$/i.test(f) && !faces.has(f)).sort().map((file) => ({
+  return castSort(entries.filter((f) => /\.png$/i.test(f) && !faces.has(f))).map((file) => ({
     file, url: `/avatars/cast/${encodeURIComponent(file)}`, label: '',
     faceUrl: faces.has(file.replace(/\.png$/i, '-face.png')) ? `/avatars/cast/${encodeURIComponent(file.replace(/\.png$/i, '-face.png'))}` : null
   }));
 }
 
-const { castFile, CAST_ALIASES } = require('./cast');
+const { castFile, CAST_ALIASES, castSort } = require('./cast');
 
 function nextOrder(offices) {
   let max = 0;

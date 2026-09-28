@@ -75,6 +75,8 @@ test('options lists the starter cast and taken folders', () => {
   assert.ok(o.cast.some((x) => x.file === 'cast-03.png'));
   assert.ok(o.cast.length >= 16);
   assert.ok(o.cast.every((x) => x.label === ''), 'the cast carries no names');
+  assert.equal(o.cast[0].file, 'cast-17.png', 'the pickers show the mixed order, not the file order');
+  assert.equal(o.cast[3].file, 'cast-11.png');
   const r = hire.hire(form({ folder: 'Alias', avatar: 'stacey.png' }), c);
   assert.equal(staff.parseConf(fs.readFileSync(path.join(r.folder, 'aa.conf'), 'utf8')).avatar, 'cast-09.png', 'old names are accepted and written as the numbered file');
   assert.deepEqual(o.taken, ['Chief of Staff']);

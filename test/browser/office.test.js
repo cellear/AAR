@@ -44,3 +44,29 @@ test('office page: launch button copies the command', async (t) => {
   const clip = await page.evaluate(() => navigator.clipboard.readText());
   assert.match(clip, /^cd ".*Prospects" && \S*claude --model sonnet --name "Holly - Headhunter"$/);
 });
+
+test('office page: disable moves the assistant off the floor; the lobby enables them again', async (t) => {
+  const a = await app(t);
+  if (!a) return;
+  const { page } = a;
+  await a.goto('/office/Prospects');
+  await page.waitForSelector('#disable');
+  page.once('dialog', (d) => d.accept());
+  await page.click('#disable');
+  await page.waitForURL(/\/$/);
+  await page.waitForSelector('#disabled:not([style*="none"])');
+  assert.match(await page.textContent('#disabled'), /Holly/);
+  assert.equal(await page.locator('.person[data-id="Prospects"]').count(), 0, 'off the floor');
+  assert.ok(fs.existsSync(path.join(a.staffDir, 'Disabled', 'Prospects', 'aa.conf')));
+  assert.ok(!fs.existsSync(path.join(a.staffDir, 'Prospects')));
+
+  await page.click('#disabled [data-enable="Prospects"]');
+  await page.waitForSelector('.person[data-id="Prospects"]', { timeout: 8000 });
+  await page.waitForFunction(() => document.querySelector('#disabled').style.display === 'none', null, { timeout: 8000 });
+  assert.ok(fs.existsSync(path.join(a.staffDir, 'Prospects', 'aa.conf')));
+
+  /* The Chief of Staff has no such button. */
+  await a.goto('/office/Chief%20of%20Staff');
+  await page.waitForSelector('#side .side');
+  assert.equal(await page.locator('#disable').count(), 0);
+});
