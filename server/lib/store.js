@@ -17,7 +17,9 @@ const { createHub } = require('./sse');
 const { dirExists } = require('./reader');
 
 /* `sources` lets tests replace the CLI and git with fixtures. */
-function createStore(cfg, { live = true, now = () => new Date(), sources = {} } = {}) {
+/* `talk` is the talk layer (server/lib/talk.js); its sessions join the live
+   list so the floor shows them like any other. */
+function createStore(cfg, { live = true, now = () => new Date(), sources = {}, talk = null } = {}) {
   const listSessions = sources.listSessions || sessions.listSessions;
   const gitStatus = sources.gitStatus || git.status;
   const gitFetch = sources.gitFetch || git.fetch;
@@ -37,7 +39,8 @@ function createStore(cfg, { live = true, now = () => new Date(), sources = {} } 
     const at = now();
     const offices = staff.discoverOffices(cfg.staffDir);
     const { cos, warnings } = staff.chiefOfStaff(offices);
-    const { byOffice, frontDesk } = sessions.attribute(liveSessions, offices, cfg.staffDir);
+    const all = talk ? liveSessions.concat(talk.liveSessions()) : liveSessions;
+    const { byOffice, frontDesk } = sessions.attribute(all, offices, cfg.staffDir);
     const snapshots = [];
     const errors = [];
     for (const o of offices) {
@@ -133,6 +136,7 @@ function createStore(cfg, { live = true, now = () => new Date(), sources = {} } 
   }
 
   function start() {
+    if (talk) talk.events.on('frame', (f) => { hub.broadcast(f); if (f.kind === 'phase' || f.kind === 'started' || f.kind === 'stopped' || f.kind === 'init') rebuild(); });
     if (!live) { rebuild(); return; }
     rebuild();
     refreshGit();

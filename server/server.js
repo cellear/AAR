@@ -18,11 +18,14 @@ const setup = require('./lib/setup');
 const launch = require('./lib/launch');
 const hire = require('./lib/hire');
 const transcripts = require('./lib/transcripts');
+const { createTalk } = require('./lib/talk');
 const { createStore } = require('./lib/store');
 
 const PUBLIC = path.join(loadConfig.APP_ROOT, 'public');
 const CAST = path.join(loadConfig.APP_ROOT, 'assets', 'avatars');
 const POST_ROUTES = new Set(['/api/setup', '/api/hire', '/api/config']);
+const TALK_POST = /^\/api\/talk\/[^/]+\/(start|say|stop|answer|forget)$/;
+const isPostRoute = (p) => POST_ROUTES.has(p) || TALK_POST.test(p);
 const MAX_BODY = 64 * 1024;
 
 const MIME = {
@@ -88,8 +91,8 @@ function readBody(req) {
   });
 }
 
-/* Build the request handler around one store. */
-function createHandler(cfg, store) {
+/* Build the request handler around one store and the talk layer. */
+function createHandler(cfg, store, talk) {
   const offices = () => store.current;
 
   /* /avatars/<office id>/avatar.png and office.png, from the office folder;
@@ -143,6 +146,22 @@ function createHandler(cfg, store) {
         return json(res, 400, { error: err.message });
       }
     }
+    const tm = TALK_POST.exec(pathname);
+    if (tm) {
+      const id = decodeURIComponent(pathname.split('/')[3]);
+      const verb = tm[1];
+      try {
+        let r;
+        if (verb === 'start') r = await talk.start(id, { fresh: body.fresh === true });
+        else if (verb === 'say') r = await talk.say(id, body.text);
+        else if (verb === 'stop') r = await talk.stop(id);
+        else if (verb === 'answer') r = talk.answer(id, body.requestId, body.allow === true, body.updatedInput);
+        else r = talk.forget(id);
+        return json(res, verb === 'say' ? 202 : 200, r);
+      } catch (err) {
+        return json(res, err.status || 500, { error: err.message });
+      }
+    }
     if (pathname === '/api/hire') {
       try {
         const result = hire.hire(body, cfg);
@@ -161,14 +180,14 @@ function createHandler(cfg, store) {
     const head = req.method === 'HEAD';
 
     if (req.method === 'OPTIONS') {
-      return send(res, 204, { Allow: POST_ROUTES.has(p) ? 'GET, HEAD, OPTIONS, POST' : 'GET, HEAD, OPTIONS' }, '');
+      return send(res, 204, { Allow: isPostRoute(p) ? 'GET, HEAD, OPTIONS, POST' : 'GET, HEAD, OPTIONS' }, '');
     }
     if (req.method === 'POST') {
-      if (!POST_ROUTES.has(p)) return send(res, 405, { Allow: 'GET, HEAD, OPTIONS', 'Content-Type': MIME['.txt'] }, 'read-only');
+      if (!isPostRoute(p)) return send(res, 405, { Allow: 'GET, HEAD, OPTIONS', 'Content-Type': MIME['.txt'] }, 'read-only');
       return void post(req, res, p);
     }
     if (req.method !== 'GET' && !head) {
-      return send(res, 405, { Allow: POST_ROUTES.has(p) ? 'GET, HEAD, OPTIONS, POST' : 'GET, HEAD, OPTIONS', 'Content-Type': MIME['.txt'] }, 'read-only');
+      return send(res, 405, { Allow: isPostRoute(p) ? 'GET, HEAD, OPTIONS, POST' : 'GET, HEAD, OPTIONS', 'Content-Type': MIME['.txt'] }, 'read-only');
     }
 
     try {
@@ -189,6 +208,11 @@ function createHandler(cfg, store) {
         const id = decodeURIComponent(p.slice('/api/launch/'.length));
         const office = offices().offices.find((o) => o.id === id);
         return office ? json(res, 200, { office: id, ...launch.launchCommand(office) }) : json(res, 404, { error: 'no such office' });
+      }
+      if (p.startsWith('/api/talk/')) {
+        const id = decodeURIComponent(p.slice('/api/talk/'.length));
+        if (!offices().offices.some((o) => o.id === id)) return json(res, 404, { error: 'no such office' });
+        return json(res, 200, talk.status(id));
       }
       if (p.startsWith('/api/transcript/')) {
         /* The conversation for one office: ?session=<id> picks a transcript
@@ -249,13 +273,16 @@ function createHandler(cfg, store) {
   };
 }
 
-/* `live: false` skips the CLI, git and the watcher; tests use it. */
-function createServer(cfg, { live = true } = {}) {
-  const store = createStore(cfg, { live });
+/* `live: false` skips the CLI, git and the watcher; tests use it. `sdk` is
+   a fake Agent SDK for tests; otherwise the real one loads on first use. */
+function createServer(cfg, { live = true, sdk = null } = {}) {
+  const talk = createTalk({ cfg, sdk, loadSdk: sdk ? null : () => import('@anthropic-ai/claude-agent-sdk') });
+  const store = createStore(cfg, { live, talk });
   store.start();
-  const server = http.createServer(createHandler(cfg, store));
+  const server = http.createServer(createHandler(cfg, store, talk));
   server.store = store;
-  server.on('close', () => store.stop());
+  server.talk = talk;
+  server.on('close', () => { store.stop(); talk.stopAll(); });
   return server;
 }
 
@@ -278,12 +305,27 @@ function start() {
     } else if ((cfg.settingsExist || process.env.AAR_STAFF_DIR) && !reader.staffExists(cfg.staffDir)) {
       console.log(`${pad}  that folder holds no office yet; the page offers to create the Chief of Staff.`);
     }
-    console.log(`${pad}  read-only: the app writes only when you create the staff, hire, or change the staff folder. "npm run reset" forgets the settings.`);
+    console.log(`${pad}  the app writes only when you create the staff, hire, change the staff folder, or start talking to an assistant. "npm run reset" forgets the settings.`);
+    if (!cfg.talk.enabled) console.log(`${pad}  talking from the page is off (talk.enabled in the settings).`);
     if (process.env.AAR_NO_OPEN !== '1' && process.stdout.isTTY) {
       const [cmd, args] = platform.openCommand(url);
       try { spawn(cmd, args, { stdio: 'ignore', detached: true }).on('error', () => {}).unref(); } catch { /* browser stays closed */ }
     }
   });
+  /* Stop every assistant AAR started before the process goes; the session
+     record stays, so the next start resumes the conversation. */
+  let closing = false;
+  const shutdown = async (signal) => {
+    if (closing) return;
+    closing = true;
+    const n = server.talk.liveSessions().length;
+    if (n) console.log(`\n${signal}: stopping ${n} assistant session(s)…`);
+    try { await server.talk.stopAll(); } catch { /* leaving anyway */ }
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 3000).unref();
+  };
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
   return server;
 }
 
