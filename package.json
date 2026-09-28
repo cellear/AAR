@@ -21,6 +21,7 @@
     "playwright-core": "^1.50.0"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.283",
     "jimp": "^1.6.1"
   }
 }

@@ -6,12 +6,14 @@ const os = require('os');
 const path = require('path');
 const config = require('../server/lib/config');
 const { createServer } = require('../server/server');
+const { fakeSdk } = require('./fake-sdk');
 
 function startServer() {
   const staffDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aar-srv-'));
   const cfg = { ...config.DEFAULTS, appRoot: config.APP_ROOT, staffDir, configPath: path.join(staffDir, 'cfg.json') };
-  const server = createServer(cfg, { live: false });
-  return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve({ server, cfg, base: `http://127.0.0.1:${server.address().port}` })));
+  const sdk = fakeSdk({ permissionFor: 'run' });
+  const server = createServer(cfg, { live: false, sdk });
+  return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve({ server, cfg, sdk, base: `http://127.0.0.1:${server.address().port}` })));
 }
 
 async function call(base, p, init) {
@@ -23,7 +25,7 @@ async function call(base, p, init) {
 }
 
 test('server: first run, setup, snapshots, method and path rules', async (t) => {
-  const { server, cfg, base } = await startServer();
+  const { server, cfg, sdk, base } = await startServer();
   t.after(() => server.close());
 
   let r = await call(base, '/api/staff');
@@ -155,6 +157,50 @@ test('server: first run, setup, snapshots, method and path rules', async (t) => 
   assert.equal(r.status, 200);
   r = await call(base, '/api/offices');
   assert.equal(r.body.staff.count, 2);
+
+  /* Talking to an assistant: the talk POSTs, and nothing else, are allowed. */
+  const tid = '/api/talk/' + encodeURIComponent('Chief of Staff');
+  r = await call(base, tid);
+  assert.equal(r.status, 200);
+  assert.equal(r.body.available, true);
+  assert.equal(r.body.running, false);
+  r = await call(base, '/api/talk/Nobody');
+  assert.equal(r.status, 404);
+  r = await call(base, tid + '/nope', { method: 'POST', body: '{}' });
+  assert.equal(r.status, 405);
+  r = await call(base, tid + '/say', { method: 'PUT', body: '{}' });
+  assert.equal(r.status, 405);
+  r = await call(base, tid + '/start', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.running, true);
+  r = await call(base, '/api/offices/' + encodeURIComponent('Chief of Staff'));
+  assert.equal(r.body.session.kind, 'aar', 'the AAR session shows on the office');
+  assert.equal(r.body.liveness, 'idle');
+  r = await call(base, tid + '/say', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: 'please run ls' }) });
+  assert.equal(r.status, 202);
+  assert.equal(r.body.phase, 'thinking');
+  r = await call(base, tid + '/say', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: 'again' }) });
+  assert.equal(r.status, 409);
+  /* The fake asks permission; answer it over the API. */
+  for (let i = 0; i < 100 && (await call(base, tid)).body.pending.length === 0; i++) await new Promise((res) => setTimeout(res, 10));
+  r = await call(base, tid);
+  assert.equal(r.body.phase, 'waiting');
+  assert.equal(r.body.pending[0].tool, 'Bash');
+  r = await call(base, '/api/offices/' + encodeURIComponent('Chief of Staff'));
+  assert.equal(r.body.liveness, 'busy');
+  r = await call(base, tid + '/answer', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ requestId: 'wrong', allow: true }) });
+  assert.equal(r.status, 404);
+  const reqId = (await call(base, tid)).body.pending[0].requestId;
+  r = await call(base, tid + '/answer', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ requestId: reqId, allow: true }) });
+  assert.equal(r.status, 200);
+  for (let i = 0; i < 100 && (await call(base, tid)).body.phase !== 'idle'; i++) await new Promise((res) => setTimeout(res, 10));
+  assert.equal((await call(base, tid)).body.phase, 'idle');
+  assert.equal(sdk.permissions[0].behavior, 'allow');
+  r = await call(base, tid + '/stop', { method: 'POST', body: '{}' });
+  assert.equal(r.status, 200);
+  assert.equal(r.body.running, false);
+  assert.equal(r.body.sessionId, 'sess-1', 'remembered');
+  assert.ok(fs.existsSync(path.join(cfg.staffDir, 'aar.sessions.json')), 'the record sits beside the settings file');
 
   r = await call(base, '/');
   assert.equal(r.status, 200);

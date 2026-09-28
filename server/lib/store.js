@@ -17,7 +17,9 @@ const { createHub } = require('./sse');
 const { dirExists, castFaceSet } = require('./reader');
 
 /* `sources` lets tests replace the CLI and git with fixtures. */
-function createStore(cfg, { live = true, now = () => new Date(), sources = {} } = {}) {
+/* `talk` is the talk layer (server/lib/talk.js); its sessions join the live
+   list so the floor shows them like any other. */
+function createStore(cfg, { live = true, now = () => new Date(), sources = {}, talk = null } = {}) {
   const listSessions = sources.listSessions || sessions.listSessions;
   const gitStatus = sources.gitStatus || git.status;
   const gitFetch = sources.gitFetch || git.fetch;
@@ -38,7 +40,8 @@ function createStore(cfg, { live = true, now = () => new Date(), sources = {} } 
     const castFaces = castFaceSet(cfg.appRoot);
     const offices = staff.discoverOffices(cfg.staffDir);
     const { cos, warnings } = staff.chiefOfStaff(offices);
-    const { byOffice, frontDesk } = sessions.attribute(liveSessions, offices, cfg.staffDir);
+    const all = talk ? liveSessions.concat(talk.liveSessions()) : liveSessions;
+    const { byOffice, frontDesk } = sessions.attribute(all, offices, cfg.staffDir);
     const snapshots = [];
     const errors = [];
     for (const o of offices) {
@@ -54,11 +57,13 @@ function createStore(cfg, { live = true, now = () => new Date(), sources = {} } 
         errors.push(`${o.id}: ${err.message}`);
       }
     }
+    /* What the talk layer knows about each office, for the floor. */
+    if (talk) for (const snap of snapshots) { const t = talk.status(snap.id); snap.talk = { available: t.available, running: t.running, phase: t.phase, pending: t.pending.map((p) => ({ tool: p.tool, input: p.input })), sessionId: t.sessionId }; }
     return {
       staff: {
         brand: cfg.brand, staffDir: cfg.staffDir, exists: dirExists(cfg.staffDir), count: snapshots.length,
         needsYou: snapshots.filter((s) => s.badges.includes('needsYou')).length,
-        cos: cos ? cos.id : null, warnings, readOnly: true, settingsExist: cfg.settingsExist !== false
+        cos: cos ? cos.id : null, warnings, readOnly: !(talk && talk.enabled), settingsExist: cfg.settingsExist !== false
       },
       offices: snapshots,
       cos: cos ? snapshots.find((s) => s.id === cos.id) || null : null,
@@ -135,6 +140,7 @@ function createStore(cfg, { live = true, now = () => new Date(), sources = {} } 
   }
 
   function start() {
+    if (talk) talk.events.on('frame', (f) => { hub.broadcast(f); if (f.kind === 'phase' || f.kind === 'started' || f.kind === 'stopped' || f.kind === 'init') rebuild(); });
     if (!live) { rebuild(); return; }
     rebuild();
     refreshGit();

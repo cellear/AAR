@@ -39,7 +39,7 @@
     $('#stats').innerHTML =
       `<span><b>${s.count}</b> office${s.count === 1 ? '' : 's'}</span>` + needs +
       `<span title="last poll">polled ${esc(clock(state.polledAt))}</span>` + stale +
-      '<span class="pill" title="AAR reads files; the only write is hiring">read-only</span>';
+      (s.readOnly ? '<span class="pill" title="Talking from the page is off; AAR only reads">read-only</span>' : '');
     document.body.classList.toggle('stale', !!state.stale || !state.connected);
     $('#hirebtn').style.display = s.count > 0 ? '' : 'none';
     $('#viewtoggle').style.display = s.count > 0 ? '' : 'none';
@@ -58,12 +58,14 @@
   }
 
   function summary(o) {
+    if (o.talk && o.talk.pending && o.talk.pending.length) return `<div class="s need">Waiting for you: may ${esc(o.name)} use ${esc(o.talk.pending[0].tool)}?</div>`;
     if (o.status && o.status.need) return `<div class="s need">Needs you: ${esc(o.status.need)}</div>`;
     if (o.bubble.source === 'none') return `<div class="s none">${esc(o.bubble.text)}</div>`;
     return `<div class="s">${esc(o.bubble.text)}</div>`;
   }
 
   function pin(o) {
+    if (o.talk && o.talk.pending && o.talk.pending.length) return '<span class="pin ask" title="Waiting for your answer">?</span>';
     if (o.badges.includes('needsYou')) return '<span class="pin" title="Needs you">!</span>';
     if (o.badges.includes('stuck')) return '<span class="pin stuck" title="Stuck">⏱</span>';
     return '';
@@ -122,11 +124,21 @@
       : `${esc(o.bubble.text)}<span class="src">${o.bubble.source === 'none' ? 'no status.md yet' : o.bubble.source === 'away' ? 'from their last session' : 'their last message'}</span>`;
     const session = o.session ? `${o.session.status} · ${o.session.kind} session` : 'no session';
     const where = [o.role, o.id].filter((x, i, a) => x && a.indexOf(x) === i).join(' · ');
-    const how = o.session
-      ? `${esc(o.name)}'s session is running (${esc(o.session.kind)}). Open session copies the command to reach it.`
-      : `To talk to ${esc(o.name)}: press <b>Open session</b>, which copies a command to the clipboard; open a terminal, paste it, and Claude Code starts in this office as ${esc(o.name)}.`;
+    const t = o.talk || { available: false };
+    const talkBtns = t.available
+      ? (t.running ? `<button class="btn talkstop" data-id="${esc(o.id)}">Stop</button>` : `<button class="btn talkstart" data-id="${esc(o.id)}">Start</button>`) + `<a class="btn primary" href="/office/${encodeURIComponent(o.id)}#reply">Talk</a>`
+      : '';
+    const how = t.available
+      ? (t.pending && t.pending.length
+        ? `${esc(o.name)} is waiting for your answer: may they use <b>${esc(t.pending[0].tool)}</b> (${esc(t.pending[0].input || '')})? Press <b>Talk</b> to answer.`
+        : t.running
+          ? `${esc(o.name)} is running here in AAR${t.phase === 'thinking' ? ' and thinking' : ''}. Press <b>Talk</b> to continue the conversation, or <b>Stop</b> to end it. <b>Open session</b> is for a separate terminal session.`
+          : `Press <b>Talk</b> to start talking to ${esc(o.name)} from here${t.sessionId ? '; the last conversation resumes' : ''}. <b>Open session</b> copies a command for a terminal instead.`)
+      : (o.session
+        ? `${esc(o.name)}'s session is running (${esc(o.session.kind)}). Open session copies the command to reach it.`
+        : `To talk to ${esc(o.name)}: press <b>Open session</b>, which copies a command to the clipboard; open a terminal, paste it, and Claude Code starts in this office as ${esc(o.name)}.`);
     return `<div class="fpanel note"><div class="head"><b>${esc(o.name)}</b><span class="rolebig">${esc(where)}</span><span>${esc(session)} · last heard ${esc(relTime(o.lastHeard))}</span></div>${body}
-      <div class="actions"><a class="btn primary" href="/office/${encodeURIComponent(o.id)}">Open office</a><a class="btn" href="/office/${encodeURIComponent(o.id)}#conversation">Conversation</a><button class="btn launch" data-id="${esc(o.id)}">Open session</button>${o.cos ? '<a class="btn" href="/cos">Cross-office view</a>' : ''}${badges(o.badges)}</div>
+      <div class="actions">${talkBtns}<a class="btn ${t.available ? '' : 'primary'}" href="/office/${encodeURIComponent(o.id)}">Open office</a><a class="btn" href="/office/${encodeURIComponent(o.id)}#conversation">Conversation</a><button class="btn launch" data-id="${esc(o.id)}">Open session</button>${o.cos ? '<a class="btn" href="/cos">Cross-office view</a>' : ''}${badges(o.badges)}</div>
       <div class="how">${how}</div></div>`;
   }
 
@@ -231,14 +243,14 @@
     return `
       <h2>How ${esc(brand)} works</h2>
       <p class="expand"><b>${esc(brand)}</b> stands for <b>Administrative Assistant Robots</b>: a staff of AI assistants, one for each outside group you deal with, each with an office of their own.</p>
-      <p>This version is a window onto the staff. It shows who is awake, what each assistant is doing, and who needs you. It reads their files and Claude Code's session list, and it never edits an assistant's files. Talking to an assistant happens in a terminal; a later version will let you talk from here.</p>
+      <p>${esc(brand)} shows the staff: who is awake, what each assistant is doing, and who needs you. It reads their files and Claude Code's session list, and it never edits an assistant's files. Press <b>Talk</b> on anyone and ${esc(brand)} runs a Claude Code session for them so you can talk from here; when they want to use a tool, they wait for your say-so. Sessions you open in a terminal stay yours.</p>
       <ol class="steps">
         <li><b>The staff folder.</b> One folder you choose, outside this app, with one subfolder per office. Make it a git repository so cloud sessions can see it. A path with no spaces is safest, such as <code>~/aar-staff</code>.</li>
         <li><b>An office</b> is one assistant's folder: a handful of Markdown files that hold what they know, what they have done, and how they behave. The formats are in <a href="/docs/conventions.md" target="_blank" rel="noopener">docs/conventions.md</a>.</li>
         <li><b>The Chief of Staff</b> is the first office, created for you on the next screen. The others come from the <b>Hire</b> button.</li>
-        <li><b>Talking to an assistant</b> happens in a terminal. From their office, copy the command ${esc(brand)} gives you, paste it into a terminal, and Claude Code starts there as that assistant. The floor updates within seconds.</li>
+        <li><b>Talking to an assistant</b> happens from their office: press <b>Talk</b>, type, and the reply streams in. Or take it to a terminal: <b>Open session</b> copies the command, and Claude Code starts there as that assistant. Either way the floor updates within seconds.</li>
       </ol>
-      <div class="note"><p>${esc(brand)} writes exactly three things: the staff folder when you create it here, a new office when you hire, and its own settings file (<code>aar.config.json</code> in the app folder). <code>npm run reset</code> forgets the settings; it never touches a staff folder.</p>
+      <div class="note"><p>${esc(brand)} writes exactly four things: the staff folder when you create it here, a new office when you hire, its own settings file (<code>aar.config.json</code> in the app folder), and a record of the sessions it started for you (<code>aar.sessions.json</code>, same folder). <code>npm run reset</code> forgets the settings; it never touches a staff folder.</p>
       <p>${esc(brand)} never modifies or deletes a file it didn't create. It writes only inside the staff folder you name here, and only to add a new office; it never edits an existing one. The one exception is its own settings file in the app folder. If git fetch is left on, ${esc(brand)} also asks your staff repository what origin has, which changes nothing in your files or branches.</p></div>`;
   }
 
@@ -349,6 +361,13 @@
         if (r.command) { await navigator.clipboard.writeText(r.command); btn.classList.add('copied'); setTimeout(() => btn.classList.remove('copied'), 1500); toast('Copied to clipboard: ' + r.command); }
         else toast(r.note);
       } catch (ex) { toast('Could not copy: ' + ex.message); }
+      return;
+    }
+    const ts = e.target.closest('.talkstart, .talkstop');
+    if (ts) {
+      e.preventDefault();
+      const verb = ts.classList.contains('talkstart') ? 'start' : 'stop';
+      postJSON(`/api/talk/${encodeURIComponent(ts.dataset.id)}/${verb}`, {}).catch((ex) => toast(ex.message));
       return;
     }
     const sel = e.target.closest('.person.sel');

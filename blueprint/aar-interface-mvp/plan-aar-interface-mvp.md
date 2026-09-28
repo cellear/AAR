@@ -21,6 +21,9 @@
 >   and AAR stands for Administrative Assistant Robots.
 > * A Playwright browser suite (`npm run test:browser`) joins the Node tests.
 > * Phase 7 (`start.sh`, tuning) is still open.
+> * The talk branch adds the Agent SDK and lets the page start, stop and
+>   talk to an assistant's session, with permission prompts answered on
+>   the page. See `../DECISIONS.md`, "the talk branch".
 
 _Written 2026-09-26 by claude-fable-5-1 (blueprint session "building an interface to AAR")._
 _Reference material: `INCOMING/` holds Luke's staff repo and eight related repos, all on GitHub. See the appendix "Reference repositories" at the end for addresses, summaries, and when each is worth consulting. The lineage is ams-trio → 3mt-avatars (avatar panels, SSE, file watching), ams-monitor (read-only window, no-write server), muse-monitor (read the tool's own logs), AMS/INTERFACE (floor plan, standees, Done/Next/Blockers bubble)._

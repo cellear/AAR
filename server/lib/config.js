@@ -17,7 +17,8 @@ const DEFAULTS = Object.freeze({
   pollMs: 5000,          /* how often `claude agents --json` is polled */
   stuckMs: 15 * 60000,   /* a session busy longer than this is flagged Stuck */
   gitFetchMs: 5 * 60000, /* 0 disables the periodic `git fetch` */
-  models: ['opus', 'sonnet', 'haiku']
+  models: ['opus', 'sonnet', 'haiku'],
+  talk: { enabled: true, permissionMode: 'default' }   /* talking to assistants from the page */
 });
 
 function configPath() {
@@ -42,6 +43,8 @@ function normalise(raw) {
     const value = raw[key];
     if (key === 'models') {
       if (Array.isArray(value) && value.every((v) => typeof v === 'string')) out.models = value.slice();
+    } else if (key === 'talk') {
+      if (value && typeof value === 'object') out.talk = { ...DEFAULTS.talk, ...value, enabled: value.enabled !== false };
     } else if (typeof DEFAULTS[key] === 'number') {
       const n = Number(value);
       if (Number.isFinite(n) && n >= 0) out[key] = n;

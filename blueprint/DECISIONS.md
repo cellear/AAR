@@ -24,6 +24,26 @@ These came from Luke directly and are not up for re-guessing.
 - 2026-09-27 · Everything an assistant says in the terminal must be readable in the app. The Conversation card reads the whole transcript.
 - 2026-09-27 · A folder picker (an AppleScript dialog) is parked until a complexity conversation.
 
+## Rulings from Luke: the talk branch (2026-09-28)
+
+- The next step is talking to assistants from the page, on a branch of its own (`claude/talk-to-assistants`), so the read-only story changes on purpose.
+- Scope for the branch: a reply box in the office (and reachable from the focused floor panel) and Start / Stop from the page. Permission prompts on the floor and answering a Need-from-you in place are later.
+- AAR talks only to sessions it started. Terminal sessions stay Luke's; two writers on one transcript is how things break.
+- When an assistant asks permission for a tool, the turn waits for Luke to answer on the page. Nothing is auto-denied or auto-approved. (A minimal Allow / Deny prompt is therefore in scope as plumbing.)
+- Mechanism: the Agent SDK (`@anthropic-ai/claude-agent-sdk`), AAR's first runtime dependency. Driving the CLI's control protocol by hand was the alternative and was declined.
+- On quit AAR stops the sessions it started and remembers each office's session id; the next message resumes that conversation. Nothing runs while AAR is closed. `claude --bg` sessions were declined because AAR cannot send to them.
+
+Build-level guesses on that branch, standing unless overturned:
+- The session record is `aar.sessions.json` beside `aar.config.json` in the app folder, so nothing new is written into an office. It is the fourth thing AAR writes; the splash now says four.
+- The SDK loads lazily on first use; without `npm install` the talk endpoints answer 503 and the pages hide the feature.
+- `talk.enabled: false` in the settings turns the feature off; the read-only pill returns.
+- One turn at a time per office: Send is refused (409) while the assistant is thinking or waiting.
+- Sessions AAR starts show on the floor as kind `aar`, so the dot, Stuck and last heard work unchanged; the sidebar names the kind.
+- The event stream is the source of truth for talk state on the page; a POST's reply is not trusted over frames that arrived first.
+- Streamed replies appear as provisional messages until the transcript catches up; with no transcript on disk they stay as settled messages.
+- `settingSources` is user, project, local, so an AAR-started session reads the office's `CLAUDE.md`, hooks and connectors like a terminal session would.
+- The SDK's bundled Claude Code is used unless `AAR_CLAUDE_BIN` points at the installed one.
+- No budget cap yet; `talk.maxBudgetUsd` is honoured if set.
 ## Rulings from Luke: the cast (2026-09-28)
 
 - The starter cast suggests no names or roles. Files are `cast-NN.png`; the pickers show pictures only. Props stay, since a megaphone reads as a role by sight without the file asserting one.
@@ -85,4 +105,5 @@ Build-level:
 - Rebranding: everything reads `brand` from config, but `aa.conf` and the folder name `aar-staff` would survive a rename.
 - The folder picker dialog (parked).
 - Gender identity for assistants (parked).
-- When the app starts talking to assistants, what stays read-only?
+- Now that the app talks to assistants: should Need-from-you lines be answerable in place (out of scope on the talk branch)?
+- Should AAR cap spend per session (`maxBudgetUsd`) by default?

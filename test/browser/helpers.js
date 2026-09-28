@@ -107,11 +107,11 @@ function fakeAssistant(env, officeFolder, sessionId = 'aaaaaaaa-0000-4000-8000-0
 }
 
 /* The fixture most tests want. Skips the test when no browser is available. */
-async function app(t, { seed = true } = {}) {
+async function app(t, { seed = true, env = {} } = {}) {
   const b = await browser();
   if (!b) { t.skip('no Chrome found; set AAR_BROWSER to a browser executable'); return null; }
   const { base, staffDir } = makeStaff({ seed });
-  const server = await startServer(base, staffDir);
+  let server = await startServer(base, staffDir, env);
   const context = await b.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await context.newPage();
   const errors = [];
@@ -119,20 +119,32 @@ async function app(t, { seed = true } = {}) {
   /* A 4xx the test provoked on purpose (a duplicate hire, a bad path) logs a
      resource error in the console; only script errors count. */
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push('console: ' + m.text()); });
-  page.on('requestfailed', (r) => errors.push('request failed: ' + r.url()));
+  /* The event stream drops when a test restarts the server and reconnects
+     by design; every other failed request is a bug. */
+  page.on('requestfailed', (r) => { if (!/\/api\/events$/.test(r.url())) errors.push('request failed: ' + r.url()); });
   t.after(async () => {
     await context.close();
     server.child.kill();
     fs.rmSync(base, { recursive: true, force: true });
     if (errors.length) throw new Error(errors.join('\n'));
   });
-  return {
-    page, base: server.base, staffDir, env: server.env, errors,
+  const api = {
+    page, staffDir, errors,
+    get base() { return server.base; },
+    get env() { return server.env; },
+    /* Quit and start the server again on the same folders, as a user would. */
+    async restart() {
+      server.child.kill('SIGTERM');
+      await new Promise((r) => server.child.once('exit', r));
+      server = await startServer(base, staffDir, env);
+      return server.base;
+    },
     office: (id) => path.join(staffDir, id),
     assistant: (id, sid) => fakeAssistant(server.env, path.join(staffDir, id), sid),
     goto: (p) => page.goto(server.base + p),
     async phone() { const c = await b.newContext({ viewport: { width: 390, height: 800 } }); const pg = await c.newPage(); t.after(() => c.close()); return pg; }
   };
+  return api;
 }
 
 /* Backdate an office's files so it reads as quiet. */

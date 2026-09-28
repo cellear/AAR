@@ -352,6 +352,8 @@ details.about[open] summary { margin-bottom: 10px; }
 .person .pin { position: absolute; top: 8%; right: 18%; width: 22px; height: 22px; border-radius: 50%; background: var(--needs); color: #fff; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,.3); border: 2px solid #fff; }
 .person .pin.stuck { background: #2a2723; color: #ffd7a8; }
 .person .pin.behind { background: #8a2b16; }
+.person .pin.ask { background: var(--needs); animation: pulse-ask 1.4s infinite; }
+@keyframes pulse-ask { 0%,100% { box-shadow: 0 2px 4px rgba(0,0,0,.3); } 50% { box-shadow: 0 0 0 6px rgba(194,96,63,.25); } }
 .person:hover .fig img { transform: translateY(-3px); }
 .person:hover .plate { border-color: var(--accent); }
 
@@ -499,6 +501,25 @@ details.about[open] summary { margin-bottom: 10px; }
 .convo .earlier { align-self: center; margin-bottom: 4px; }
 .convo .none { color: var(--muted); font-style: italic; font-size: 14px; }
 
+/* ---------- talking to an assistant ---------- */
+.reply { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 12px; }
+.reply .rstatus { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); margin-bottom: 8px; flex-wrap: wrap; }
+.reply .rstatus .dot { flex: none; }
+.reply .rstatus .err { color: var(--needs); }
+.reply textarea { width: 100%; min-height: 64px; padding: 9px 11px; font: inherit; border: 1px solid var(--line); border-radius: 8px; background: #fff; resize: vertical; }
+.reply textarea:disabled { background: var(--paper-deep); color: var(--muted); }
+.reply .rrow { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.reply .rrow .hint { font-size: 12px; color: var(--muted); margin-left: auto; }
+.reply .btn.primary:disabled { opacity: .5; cursor: default; }
+.ask { background: var(--note); color: var(--note-ink); border-radius: 3px 10px 10px 10px; padding: 10px 14px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,.12); font-size: 14px; }
+.ask b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--needs); margin-bottom: 4px; }
+.ask code { display: block; background: rgba(255,255,255,.6); padding: 6px 8px; border-radius: 5px; font-size: 12.5px; white-space: pre-wrap; word-break: break-word; margin: 6px 0; }
+.ask .rrow { margin-top: 6px; }
+.msg.pending .body { border-style: dashed; }
+.msg.settled .body { border-style: solid; }
+.msg.pending .body .md::after { content: "▍"; color: var(--muted); animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.office-head .askpin { background: var(--needs); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: .03em; }
 /* face pictures on the floor: the face shows on the everyone view, the full
    figure when focused or receded */
 .person .fig img.full { display: none; }
