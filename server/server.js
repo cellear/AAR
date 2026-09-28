@@ -276,6 +276,9 @@ function createHandler(cfg, store, talk) {
 /* `live: false` skips the CLI, git and the watcher; tests use it. `sdk` is
    a fake Agent SDK for tests; otherwise the real one loads on first use. */
 function createServer(cfg, { live = true, sdk = null } = {}) {
+  /* AAR_TALK_FAKE=1 swaps in the scripted SDK from the tests, for driving
+     the pages without a real assistant. */
+  if (!sdk && process.env.AAR_TALK_FAKE === '1') sdk = require('../test/fake-sdk').fakeSdk({ permissionFor: 'run', slow: true });
   const talk = createTalk({ cfg, sdk, loadSdk: sdk ? null : () => import('@anthropic-ai/claude-agent-sdk') });
   const store = createStore(cfg, { live, talk });
   store.start();

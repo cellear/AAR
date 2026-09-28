@@ -83,6 +83,7 @@
 
   /* ---------- the conversation ---------- */
   const convo = { session: null, messages: [], from: 0, total: 0, sessions: [], live: false, timer: null, stuck: true };
+  const talk = { state: null, draft: '', pendingText: '', countAtSend: undefined };
 
   function msgHTML(m) {
     const when = m.at ? new Date(m.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
@@ -109,13 +110,19 @@
     const box = $('#convo');
     if (!box) return;
     if (!convo.session) {
-      box.innerHTML = `<h2>Conversation</h2>${barHTML()}<div class="none">No transcript on this Mac for this office yet. Transcripts appear once a session has run in the office folder in a terminal here; sessions from the desktop app or the cloud leave none.</div>`;
+      /* No transcript yet. Keep any provisional messages the talk stream
+         has drawn; only build the empty state when there is nothing. */
+      const existing = $('#msgs');
+      if (existing && existing.querySelector('.msg')) return;
+      box.innerHTML = `<h2>Conversation</h2>${barHTML()}<div class="none">No transcript on this Mac for this office yet. Transcripts appear once a session has run in the office folder in a terminal here, or once you start talking below; sessions from the desktop app or the cloud leave none.</div><div class="msgs" id="msgs" style="display:none"></div>`;
       drawn.clear();
+      renderReply();
       return;
     }
     let msgs = $('#msgs');
     if (!msgs) {
       box.innerHTML = `<h2>Conversation</h2>${barHTML()}<div class="msgs" id="msgs"><button class="btn earlier" id="earlier" style="display:none"></button></div>`;
+      renderReply();
       msgs = $('#msgs');
       drawn.clear();
       msgs.addEventListener('scroll', () => { convo.stuck = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 40; });
@@ -156,7 +163,10 @@
       drawn.set(m.i, json);
       anchor = el;
     }
-    if (!convo.messages.length && !msgs.querySelector('.none')) msgs.insertAdjacentHTML('beforeend', '<div class="none">Nothing said yet.</div>');
+    /* Provisional messages from the talk stream go once the transcript has
+       caught up with them. */
+    if (talk.countAtSend !== undefined && convo.messages.length > talk.countAtSend) { msgs.querySelectorAll('.msg.settled, .msg.pending').forEach((n) => n.remove()); talk.countAtSend = undefined; }
+    if (!convo.messages.length && !msgs.querySelector('.none') && !msgs.querySelector('.msg')) msgs.insertAdjacentHTML('beforeend', '<div class="none">Nothing said yet.</div>');
     if (convo.messages.length) { const n = msgs.querySelector('.none'); if (n) n.remove(); }
 
     if (prepended) msgs.scrollTop = top + (msgs.scrollHeight - before);   /* hold the reader's place */
@@ -188,6 +198,127 @@
       const box = $('#convo'); if (box) box.innerHTML = `<h2>Conversation</h2><div class="none">${esc(err.message)}</div>`;
     }
   }
+
+  /* ---------- talking ---------- */
+
+  function talkStatusLine() {
+    const t = talk.state;
+    if (!t) return '';
+    if (!t.available) return '';
+    const dot = `<span class="dot ${t.running ? (t.phase === 'idle' ? 'idle' : 'busy') : 'none'}"></span>`;
+    let text;
+    if (!t.running) text = t.sessionId ? `Not running. Send a message to pick up the last conversation, or Start.` : `No session yet. Send a message or press Start; ${esc(office.name)} runs here, in this office, until you Stop.`;
+    else if (t.phase === 'thinking') text = `${esc(office.name)} is thinking…`;
+    else if (t.phase === 'waiting') text = `${esc(office.name)} is waiting for your answer below.`;
+    else text = `${esc(office.name)} is listening${t.model ? ' · ' + esc(t.model) : ''}.`;
+    const err = t.error ? `<span class="err">${esc(t.error)}</span>` : '';
+    return `${dot}<span>${text}</span>${err}`;
+  }
+
+  function askHTML(p) {
+    return `<div class="ask" data-req="${esc(p.requestId)}"><b>${esc(office.name)} wants to use ${esc(p.tool)}</b><code>${esc(p.input || '(no details)')}</code>
+      <div class="rrow"><button class="btn primary" data-allow="1">Allow</button><button class="btn" data-allow="0">Deny</button><span class="hint">Nothing runs until you answer.</span></div></div>`;
+  }
+
+  function renderReply() {
+    let box = $('#reply');
+    const convoCard = $('#convo');
+    if (!convoCard) return;
+    if (!talk.state || !talk.state.available) { if (box) box.remove(); return; }
+    if (!box) { box = document.createElement('div'); box.className = 'reply'; box.id = 'reply'; convoCard.appendChild(box); }
+    const t = talk.state;
+    const busy = t.running && t.phase !== 'idle';
+    const draft = box.querySelector('textarea') ? box.querySelector('textarea').value : talk.draft;
+    box.innerHTML = `<div class="rstatus">${talkStatusLine()}</div>
+      ${(t.pending || []).map(askHTML).join('')}
+      <textarea id="say" placeholder="Talk to ${esc(office.name)}… (Enter to send, Shift+Enter for a new line)" ${busy ? 'disabled' : ''}></textarea>
+      <div class="rrow"><button class="btn primary" id="send" ${busy ? 'disabled' : ''}>Send</button>
+        ${t.running ? '<button class="btn" id="stoptalk">Stop</button>' : '<button class="btn" id="starttalk">Start</button>'}
+        ${!t.running && t.sessionId ? '<button class="btn" id="forgettalk" title="Forget the remembered conversation; the next Start begins fresh">New conversation</button>' : ''}
+        <span class="hint">Sessions you open in a terminal are separate; this one is AAR's.</span></div>`;
+    box.querySelector('textarea').value = draft;
+  }
+
+  /* The event stream is the source of truth for talk state; a POST's reply
+     can be older than frames that already arrived, so it is not trusted for
+     state, only for errors. */
+  async function talkPost(verb, body) {
+    try {
+      const r = await getJSON(`/api/talk/${encodeURIComponent(id)}/${verb}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
+      await loadTalk();
+      return r;
+    } catch (err) { toast(err.message); await loadTalk(); return null; }
+  }
+
+  /* A provisional message at the end of the list while a reply streams;
+     the transcript poll replaces it with the real thing. */
+  function pendingEl(role) {
+    const msgs = $('#msgs');
+    if (!msgs) return null;
+    if (msgs.style.display === 'none') { msgs.style.display = ''; const n = $('#convo .none'); if (n) n.remove(); }
+    let el = msgs.querySelector(`.msg.pending.${role}`);
+    if (!el) {
+      msgs.insertAdjacentHTML('beforeend', `<div class="msg ${role} pending"><div class="who">${role === 'user' ? 'you' : esc(office.name)}<span class="t">now</span></div><div class="body"><div class="md"></div></div></div>`);
+      el = msgs.querySelector(`.msg.pending.${role}`);
+    }
+    return el;
+  }
+
+  function onTalkFrame(f) {
+    if (f.office !== id) return;
+    if (f.type === 'permission') {
+      if (f.answered) { if (talk.state) talk.state.pending = (talk.state.pending || []).filter((p) => p.requestId !== f.requestId); }
+      else { if (talk.state) { talk.state.pending = [...(talk.state.pending || []), f]; talk.state.phase = 'waiting'; talk.state.running = true; } }
+      renderReply(); renderHeadAsk();
+      return;
+    }
+    switch (f.kind) {
+      case 'sent': {
+        talk.countAtSend = convo.messages.length;
+        const el = pendingEl('user'); if (el) el.querySelector('.md').innerHTML = markdown(f.text);
+        talk.pendingText = '';
+        const msgs = $('#msgs'); if (msgs) msgs.scrollTop = msgs.scrollHeight;
+        break;
+      }
+      case 'delta': {
+        talk.pendingText += f.text;
+        const el = pendingEl('assistant'); if (el) el.querySelector('.md').innerHTML = markdown(talk.pendingText);
+        if (convo.stuck) { const msgs = $('#msgs'); if (msgs) msgs.scrollTop = msgs.scrollHeight; }
+        break;
+      }
+      case 'result': case 'stopped': case 'error': case 'phase': case 'init': case 'started':
+        if (talk.state) { if (f.phase) talk.state.phase = f.phase; if (f.kind === 'stopped') { talk.state.running = false; talk.state.phase = 'off'; talk.state.pending = []; } if (f.kind === 'started' || f.kind === 'init') { talk.state.running = true; if (f.sessionId) talk.state.sessionId = f.sessionId; if (f.model) talk.state.model = f.model; } if (f.kind === 'error') talk.state.error = f.message; if (f.kind === 'result' && !f.isError) talk.state.error = null; }
+        if (f.kind === 'result' || f.kind === 'stopped') { talk.pendingText = ''; document.querySelectorAll('#msgs .msg.pending').forEach((n) => n.classList.replace('pending', 'settled')); loadConvo(); }
+        renderReply(); renderHeadAsk();
+        break;
+      default: break;
+    }
+  }
+
+  function renderHeadAsk() {
+    let pin = $('#askpin');
+    const n = talk.state && talk.state.pending ? talk.state.pending.length : 0;
+    if (!n) { if (pin) pin.remove(); return; }
+    if (!pin) { pin = document.createElement('span'); pin.id = 'askpin'; pin.className = 'askpin'; $('#badges').appendChild(pin); }
+    pin.textContent = n === 1 ? 'Waiting for you' : `${n} waiting for you`;
+  }
+
+  async function loadTalk() {
+    try { talk.state = await getJSON(`/api/talk/${encodeURIComponent(id)}`); } catch { talk.state = null; }
+    renderReply(); renderHeadAsk();
+  }
+
+  document.addEventListener('click', async (e) => {
+    if (e.target.closest('#send')) { const ta = $('#say'); const text = ta.value.trim(); if (!text) return; ta.value = ''; await talkPost('say', { text }); return; }
+    if (e.target.closest('#starttalk')) { await talkPost('start'); return; }
+    if (e.target.closest('#stoptalk')) { await talkPost('stop'); return; }
+    if (e.target.closest('#forgettalk')) { await talkPost('forget'); return; }
+    const a = e.target.closest('.ask [data-allow]');
+    if (a) { const req = a.closest('.ask').dataset.req; await talkPost('answer', { requestId: req, allow: a.dataset.allow === '1' }); }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.target.id === 'say' && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#send').click(); }
+  });
 
   function startConvoPolling() {
     if (convo.timer) clearInterval(convo.timer);
@@ -254,7 +385,7 @@
     renderHead(); renderStage(); renderSide();
     /* The main column re-renders in full only the first time; afterwards the
        briefing cards refresh in place so the conversation keeps its scroll. */
-    if (first) { renderMain(); startConvoPolling(); }
+    if (first) { renderMain(); startConvoPolling(); loadTalk(); }
     else {
       /* Leave the conversation card in place: detaching a scroll container
          resets its scroll position. Replace only its siblings. */
@@ -282,6 +413,8 @@
       office = o; render();
     } else if (f.type === 'office' && f.office.id === id) {
       office = f.office; render();
+    } else if (f.type === 'talk' || f.type === 'permission') {
+      onTalkFrame(f);
     }
   });
 })();
