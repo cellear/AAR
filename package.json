@@ -18,5 +18,8 @@
   "license": "MIT",
   "devDependencies": {
     "playwright-core": "^1.50.0"
+  },
+  "dependencies": {
+    "jimp": "^1.6.1"
   }
 }
