@@ -332,7 +332,7 @@
     $('#main').innerHTML = convoCard + (office.briefing === null ? '<article class="pcard empty"><h2>Briefing</h2><div class="md"><p>No briefing.md yet.</p></div></article>' : cards) + logCard() + readmeCard();
     convo.stuck = true;
     loadConvo();
-    if (location.hash === '#conversation') setTimeout(() => { const c = $('#convo'); if (c) c.scrollIntoView({ behavior: 'smooth' }); }, 300);
+    if (location.hash === '#conversation' || location.hash === '#reply') setTimeout(() => { const c = $('#convo'); if (c) c.scrollIntoView({ behavior: 'smooth' }); if (location.hash === '#reply') { const ta = $('#say'); if (ta && !ta.disabled) ta.focus(); } }, 300);
   }
 
   function renderSide() {

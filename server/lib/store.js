@@ -55,11 +55,13 @@ function createStore(cfg, { live = true, now = () => new Date(), sources = {}, t
         errors.push(`${o.id}: ${err.message}`);
       }
     }
+    /* What the talk layer knows about each office, for the floor. */
+    if (talk) for (const snap of snapshots) { const t = talk.status(snap.id); snap.talk = { available: t.available, running: t.running, phase: t.phase, pending: t.pending.map((p) => ({ tool: p.tool, input: p.input })), sessionId: t.sessionId }; }
     return {
       staff: {
         brand: cfg.brand, staffDir: cfg.staffDir, exists: dirExists(cfg.staffDir), count: snapshots.length,
         needsYou: snapshots.filter((s) => s.badges.includes('needsYou')).length,
-        cos: cos ? cos.id : null, warnings, readOnly: true, settingsExist: cfg.settingsExist !== false
+        cos: cos ? cos.id : null, warnings, readOnly: !(talk && talk.enabled), settingsExist: cfg.settingsExist !== false
       },
       offices: snapshots,
       cos: cos ? snapshots.find((s) => s.id === cos.id) || null : null,

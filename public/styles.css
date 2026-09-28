@@ -352,6 +352,8 @@ details.about[open] summary { margin-bottom: 10px; }
 .person .pin { position: absolute; top: 8%; right: 18%; width: 22px; height: 22px; border-radius: 50%; background: var(--needs); color: #fff; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,.3); border: 2px solid #fff; }
 .person .pin.stuck { background: #2a2723; color: #ffd7a8; }
 .person .pin.behind { background: #8a2b16; }
+.person .pin.ask { background: var(--needs); animation: pulse-ask 1.4s infinite; }
+@keyframes pulse-ask { 0%,100% { box-shadow: 0 2px 4px rgba(0,0,0,.3); } 50% { box-shadow: 0 0 0 6px rgba(194,96,63,.25); } }
 .person:hover .fig img { transform: translateY(-3px); }
 .person:hover .plate { border-color: var(--accent); }
 
